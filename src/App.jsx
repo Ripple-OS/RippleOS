@@ -1,5 +1,7 @@
+import Screen from "./views/Screen"
+
 function App() {
-  return
+  return (<Screen />)
 }
 
 export default App

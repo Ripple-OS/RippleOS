@@ -1,0 +1,223 @@
+@use 'colors.scss';
+@use 'sass:color';
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    text-decoration: none;
+    list-style: none;
+    border: none;
+    outline: none;
+    font-family: 'Poppins', 'Nunito', sans-serif;
+    transition: .2s linear;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    overflow: hidden;
+}
+
+// SCREEN CUSTOMIZATION ------------------
+
+main {
+    height: 100vh;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    // BOTTOM NAVIGATION CUSTOMIZATION
+    .screen_bottom_navigation {
+        width: 100%;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        bottom: 0;
+        animation: .5s ease-in-out slide-to-top forwards;
+        padding: 0 8px;
+        @keyframes slide-to-top {
+            0% {
+                opacity: 0;
+                bottom: -72px;
+            }
+            100% {
+                opacity: 1;
+                bottom: 0;
+            }
+        }
+        // DOCK CUSTOMIZATION
+        .dock {
+            position: absolute;
+            width: fit-content;
+            height: 56px;
+            background: color.change(colors.$white, $alpha: .5);
+            z-index: 1;
+            border-radius: 99px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 16px;
+            gap: 12px;
+            left: 0;
+            right: 0;
+            margin: auto;
+            .dock_app {
+                height: 40px;
+                width: 40px;
+                border-radius: 99px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: colors.$white;
+                background: colors.$secondary;
+                cursor: pointer;
+                font-size: 20px;
+                span {
+                    position: fixed;
+                    background: color.change(colors.$bg, $alpha: 0.5);
+                    border-radius: 99px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                    padding: 4px 12px;
+                    font-weight: 600;
+                    bottom: 72px;
+                    color: colors.$white;
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                &:hover {
+                    background: color.adjust(colors.$secondary, $lightness: 5%);
+                    span {
+                        opacity: 1;
+                    }
+                }
+                &.primary {
+                    background: colors.$white;
+                    color: colors.$purple;
+                    &:hover {
+                        background: colors.$purple;
+                        color: colors.$white;
+                    }
+                }
+            }
+        }
+        // UTILITY MENU CUSTOMIZATION
+        .utility_menu {
+            height: 56px;
+            background: color.change(colors.$white, $alpha: .5);
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 99px;
+            padding: 0 12px;
+            .utility_icon {
+                height: 32px;
+                width: 32px;
+                border-radius: 99px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: colors.$secondary;
+                background: colors.$white;
+                cursor: pointer;
+                font-size: 13px;
+                span {
+                    position: fixed;
+                    background: color.change(colors.$bg, $alpha: 0.5);
+                    border-radius: 99px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                    padding: 4px 12px;
+                    font-weight: 600;
+                    bottom: 72px;
+                    color: colors.$white;
+                    opacity: 0;
+                    pointer-events: none;
+                }
+                &:hover {
+                    background: color.adjust(colors.$secondary, $lightness: 5%);
+                    color: colors.$white;
+                    span {
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+        // SEARCHING CUSTOMIZATION
+        .searching {
+            display: flex;
+            align-items: center;
+            width: 225px;
+            height: 48px;
+            background: color.change(colors.$white, $alpha: .5);
+            padding: 4px 12px;
+            border-radius: 99px;
+            span {
+                color: colors.$white;
+                background: colors.$secondary;
+                height: 32px;
+                min-width: 32px;
+                border-radius: 99px;
+                display: flex;
+                align-items: center;
+                font-size: 16px;
+                justify-content: center;
+            }
+            input {
+                background: transparent;
+                border-radius: 99px;
+                padding: 4px 12px;
+                width: 100%;
+                height: 100%;
+                color: colors.$white;
+                font-weight: 500;
+                font-size: 13px;
+                &::placeholder {
+                    color: colors.$white;
+                }
+            }
+        }
+    }
+    // SCREEN ELEMENTS CUSTOMIZATION
+    .screen_elements {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        // CLOCK CUSTOMIZATION
+        .clock {
+            display: flex;
+            margin: auto;
+            width: fit-content;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding-top: 48px;
+            span {
+                color: colors.$white;
+                font-weight: 700;
+                font-size: 3rem;
+                font-family: 'Nunito', 'Poppins', sans-serif;
+                &:nth-child(2) {
+                    font-weight: 500;
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+}
+
+* {
+    user-select: none;
+}
