@@ -1,58 +1,13 @@
-import { faChrome } from '@fortawesome/free-brands-svg-icons'
-import { faCalculator, faFolderOpen, faGear, faList } from '@fortawesome/free-solid-svg-icons'
 import React, { useState } from 'react'
 import DockApp from './DockApp'
-import { faCalendar, faImages } from '@fortawesome/free-regular-svg-icons'
+import { defaultApps } from '../../../../api/apps/defaultApps'
 
-export default function Dock() {
-    const [appsInDock] = useState([
-        {
-            name: 'Display Apps',
-            icon: faList,
-            action: '',
-            primary: true
-        },
-        {
-            name: 'Settings',
-            icon: faGear,
-            action: '',
-            primary: false
-        },
-        {
-            name: 'Files Manager',
-            icon: faFolderOpen,
-            action: '',
-            primary: false
-        },
-        {
-            name: 'Chrome Browser',
-            icon: faChrome,
-            action: '',
-            primary: false
-        },
-        {
-            name: 'Calendar',
-            icon: faCalendar,
-            action: '',
-            primary: false
-        },
-        {
-            name: 'Calculator',
-            icon: faCalculator,
-            action: '',
-            primary: false
-        },
-        {
-            name: 'Gallery',
-            icon: faImages,
-            action: '',
-            primary: false
-        },
-    ])
+export default function Dock({ setPopups }) {
+    const [appsInDock] = useState(defaultApps)
 
   return (
     <div className="dock">
-        {appsInDock.map((app, index) => <DockApp app={app} key={index} />)}
+        {appsInDock.filter((app) => app.defaultDock).map((app, index) => <DockApp setPopups={setPopups} app={app} key={index} />)}
     </div>
   )
 }

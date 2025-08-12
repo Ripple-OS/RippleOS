@@ -35,12 +35,12 @@ main {
         width: 100%;
         height: 72px;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: space-between;
         position: fixed;
         bottom: 0;
         animation: .5s ease-in-out slide-to-top forwards;
-        padding: 0 8px;
+        padding: 8px 32px;
         @keyframes slide-to-top {
             0% {
                 opacity: 0;
@@ -56,13 +56,14 @@ main {
             position: absolute;
             width: fit-content;
             height: 56px;
-            background: color.change(colors.$white, $alpha: .5);
+            background: color.change(colors.$white, $alpha: .3);
+            backdrop-filter: blur(5px);
             z-index: 1;
             border-radius: 99px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 16px;
+            padding: 0 8px;
             gap: 12px;
             left: 0;
             right: 0;
@@ -88,10 +89,11 @@ main {
                     font-size: 13px;
                     padding: 4px 12px;
                     font-weight: 600;
-                    bottom: 72px;
+                    bottom: 64px;
                     color: colors.$white;
                     opacity: 0;
                     pointer-events: none;
+                    width: max-content;
                 }
                 &:hover {
                     background: color.adjust(colors.$secondary, $lightness: 5%);
@@ -111,8 +113,9 @@ main {
         }
         // UTILITY MENU CUSTOMIZATION
         .utility_menu {
-            height: 56px;
-            background: color.change(colors.$white, $alpha: .5);
+            height: 48px;
+            background: color.change(colors.$white, $alpha: .3);
+            backdrop-filter: blur(5px);
             width: fit-content;
             display: flex;
             align-items: center;
@@ -140,10 +143,11 @@ main {
                     font-size: 13px;
                     padding: 4px 12px;
                     font-weight: 600;
-                    bottom: 72px;
+                    bottom: 56px;
                     color: colors.$white;
                     opacity: 0;
                     pointer-events: none;
+                    width: max-content;
                 }
                 &:hover {
                     background: color.adjust(colors.$secondary, $lightness: 5%);
@@ -160,9 +164,10 @@ main {
             align-items: center;
             width: 225px;
             height: 48px;
-            background: color.change(colors.$white, $alpha: .5);
             padding: 4px 12px;
             border-radius: 99px;
+            background: color.change(colors.$white, $alpha: .3);
+            backdrop-filter: blur(5px);
             span {
                 color: colors.$white;
                 background: colors.$secondary;
@@ -212,6 +217,89 @@ main {
                 &:nth-child(2) {
                     font-weight: 500;
                     font-size: 1.5rem;
+                }
+            }
+        }
+        // POPUP CUSTOMIZATION
+        .popup {
+            width: 512px;
+            height: 356px;
+            background: color.change(colors.$white, $alpha: .3);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            position: absolute;
+            bottom: 72px;
+            left: 0;
+            right: 0;
+            margin: auto;
+            .content {
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                .search_apps {
+                    display: flex;
+                    align-items: center;
+                    background: colors.$white;
+                    height: 42px;
+                    border-radius: 99px;
+                    padding: 0px 8px;
+                    gap: 12px;
+                    .icon {
+                        height: 32px;
+                        width: 32px;
+                        background: colors.$secondary;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 99px;
+                        color: colors.$white;
+                    }
+                    input {
+                        background: transparent;
+                        color: colors.$bg;
+                        font-size: 14px;
+                        font-weight: 500;
+                        &::placeholder {
+                            color: colors.$hold;
+                        }
+                    }
+                }
+                .apps_list {
+                    display: flex;
+                    flex-direction: column;
+                    overflow-y: auto;
+                    max-height: 282px;
+                    gap: 8px;
+                    &::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .app {
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 4px;
+                        border-radius: 99px;
+                        &:hover {
+                            background: color.change(colors.$white, $alpha: .3);
+                        }
+                        .icon {
+                            height: 32px;
+                            width: 32px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: colors.$secondary;
+                            background: colors.$white;
+                            border-radius: 99px;
+                            font-size: 14px;
+                        }
+                        span {
+                            color: colors.$bg;
+                            font-weight: 500;
+                            font-size: 15px;
+                        }
+                    }
                 }
             }
         }
