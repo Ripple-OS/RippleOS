@@ -10,15 +10,12 @@ import {
     faHome,
     faClock,
     faStar,
-    faNetworkWired,
     faTrash,
     faFolder,
     faDownload,
     faMusic,
     faImage,
     faVideo,
-    faDesktop,
-    faHdd,
     faFileArchive,
     faFilePdf,
     faCompactDisc,
@@ -38,7 +35,7 @@ export default function FileExplorer({ onClose }) {
         { id: "Recent", icon: faClock, label: "Recent" },
         { id: "Starred", icon: faStar, label: "Starred" },
         { id: "Trash", icon: faTrash, label: "Trash" },
-        { id: "Network", icon: faNetworkWired, label: "Network" },
+        // { id: "Network", icon: faNetworkWired, label: "Network" },
         { id: "Documents", icon: faFolder, label: "Documents" },
         { id: "Downloads", icon: faDownload, label: "Downloads" },
         { id: "Music", icon: faMusic, label: "Music" },
@@ -149,7 +146,6 @@ export default function FileExplorer({ onClose }) {
         <Window
             title="File Explorer"
             onClose={onClose}
-            defaultPosition={{ x: 150, y: 100 }}
             defaultSize={{ width: 1000, height: 700 }}
         >
             <div className="file-explorer">
@@ -228,60 +224,105 @@ export default function FileExplorer({ onClose }) {
 
                     {/* Content Pane */}
                     <div className="content-pane">
-                        {/* Column Headers */}
-                        <div className="column-headers">
-                            <div className="header-name">
-                                Name
-                                <FontAwesomeIcon
-                                    icon={faChevronDown}
-                                    className="sort-icon"
-                                />
-                            </div>
-                            <div className="header-size">
-                                Size
-                                <FontAwesomeIcon
-                                    icon={faChevronDown}
-                                    className="sort-icon"
-                                />
-                            </div>
-                            <div className="header-modified">
-                                Modified
-                                <FontAwesomeIcon
-                                    icon={faChevronDown}
-                                    className="sort-icon"
-                                />
-                            </div>
-                            <div className="header-actions"></div>
-                        </div>
-
-                        {/* File List */}
-                        <div className="file-list">
-                            {fileItems.map((item, index) => (
-                                <div key={index} className="file-row">
-                                    <div className="file-icon">
+                        {currentView === "list" ? (
+                            <>
+                                {/* Column Headers */}
+                                <div className="column-headers">
+                                    <div className="header-name">
+                                        Name
                                         <FontAwesomeIcon
-                                            icon={getFileIcon(item.type)}
-                                            style={{
-                                                color: getFileIconColor(
-                                                    item.type
-                                                ),
-                                            }}
+                                            icon={faChevronDown}
+                                            className="sort-icon"
                                         />
                                     </div>
-                                    <div className="file-name">{item.name}</div>
-                                    <div className="file-size">{item.size}</div>
-                                    <div className="file-modified">
-                                        {item.modified}
-                                    </div>
-                                    <div className="file-actions">
+                                    <div className="header-size">
+                                        Size
                                         <FontAwesomeIcon
-                                            icon={faStarRegular}
-                                            className="star-icon"
+                                            icon={faChevronDown}
+                                            className="sort-icon"
                                         />
                                     </div>
+                                    <div className="header-modified">
+                                        Modified
+                                        <FontAwesomeIcon
+                                            icon={faChevronDown}
+                                            className="sort-icon"
+                                        />
+                                    </div>
+                                    <div className="header-actions"></div>
                                 </div>
-                            ))}
-                        </div>
+
+                                {/* File List */}
+                                <div className="file-list">
+                                    {fileItems.map((item, index) => (
+                                        <div key={index} className="file-row">
+                                            <div className="file-icon">
+                                                <FontAwesomeIcon
+                                                    icon={getFileIcon(
+                                                        item.type
+                                                    )}
+                                                    style={{
+                                                        color: getFileIconColor(
+                                                            item.type
+                                                        ),
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="file-name">
+                                                {item.name}
+                                            </div>
+                                            <div className="file-size">
+                                                {item.size}
+                                            </div>
+                                            <div className="file-modified">
+                                                {item.modified}
+                                            </div>
+                                            <div className="file-actions">
+                                                <FontAwesomeIcon
+                                                    icon={faStarRegular}
+                                                    className="star-icon"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            /* Grid View */
+                            <div className="grid-view">
+                                {fileItems.map((item, index) => (
+                                    <div key={index} className="grid-item">
+                                        <div className="grid-item-icon">
+                                            <FontAwesomeIcon
+                                                icon={getFileIcon(item.type)}
+                                                style={{
+                                                    color: getFileIconColor(
+                                                        item.type
+                                                    ),
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="grid-item-name">
+                                            {item.name}
+                                        </div>
+                                        <div className="grid-item-details">
+                                            <span className="grid-item-size">
+                                                {item.size}
+                                            </span>
+                                            <span className="grid-item-modified">
+                                                {item.modified}
+                                            </span>
+                                        </div>
+                                        <div className="grid-item-actions">
+                                            <FontAwesomeIcon
+                                                icon={faStarRegular}
+                                                className="star-icon"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
