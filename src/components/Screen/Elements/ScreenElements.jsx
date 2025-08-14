@@ -21,7 +21,7 @@ export default function ScreenElements({ popups, setPopups }) {
             )}
             {popups.find((popup) => popup.name === "Sound Control")
                 ?.toggled && <UtilitySoundControl />}
-            {/* <ScreenApps /> */}
+            <ScreenApps />
         </div>
     );
 }
