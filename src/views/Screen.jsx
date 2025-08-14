@@ -9,6 +9,10 @@ export default function Screen() {
             name: "Display Apps",
             toggled: false,
         },
+        {
+            name: 'Sound Control',
+            toggled: false,
+        }
     ]);
 
     return (

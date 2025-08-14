@@ -1,17 +1,13 @@
 import {
-    faBatteryFull,
-    faBell,
     faVolumeHigh,
     faVolumeLow,
     faVolumeOff,
     faVolumeXmark,
-    faWifi,
 } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
-import UtilityIcon from "./UtilityIcon";
-import { _closeEveryPopup } from "../../../../functions/_closeEveryPopup";
 
-export default function UtilityMenu({ setPopups }) {
+export default function UtilitySoundControl() {
     const [volume, setVolume] = useState(() => {
         try {
             const saved = localStorage.getItem("volume");
@@ -61,38 +57,35 @@ export default function UtilityMenu({ setPopups }) {
         };
     }, []);
 
-    const menu = [
-        {
-            name: "Internet Connection",
-            icon: faWifi,
-        },
-        {
-            name: "Sound Control",
-            icon:
-                volume >= 75
-                    ? faVolumeHigh
-                    : volume >= 45
-                    ? faVolumeLow
-                    : volume >= 1
-                    ? faVolumeOff
-                    : faVolumeXmark,
-            action: () => _closeEveryPopup("Sound Control", setPopups),
-        },
-        {
-            name: "Battery",
-            icon: faBatteryFull,
-        },
-        {
-            name: "Notifications",
-            icon: faBell,
-        },
-    ];
-
     return (
-        <div className="utility_menu">
-            {menu.map((app, index) => (
-                <UtilityIcon utility={app} key={index} />
-            ))}
+        <div className="popup" id="sound_control">
+            <div className="content">
+                <div className="sound_control">
+                    <div className="icon">
+                        <FontAwesomeIcon
+                            icon={
+                                volume >= 75
+                                    ? faVolumeHigh
+                                    : volume >= 45
+                                    ? faVolumeLow
+                                    : volume >= 1
+                                    ? faVolumeOff
+                                    : faVolumeXmark
+                            }
+                        />
+                    </div>
+                    <div className="slider">
+                        <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={volume}
+                            onChange={(e) => setVolume(Number(e.target.value))}
+                            style={{ "--value": `${volume}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

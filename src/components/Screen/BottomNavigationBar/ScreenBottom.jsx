@@ -8,7 +8,7 @@ export default function ScreenBottom({ setPopups }) {
     <div className="screen_bottom_navigation">
         <Searching />
         <Dock setPopups={setPopups} />
-        <UtilityMenu />
+        <UtilityMenu setPopups={setPopups} />
     </div>
   )
 }

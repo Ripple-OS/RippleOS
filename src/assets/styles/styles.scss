@@ -30,6 +30,7 @@ main {
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+
     // BOTTOM NAVIGATION CUSTOMIZATION
     .screen_bottom_navigation {
         width: 100%;
@@ -41,16 +42,19 @@ main {
         bottom: 0;
         animation: .5s ease-in-out slide-to-top forwards;
         padding: 8px 32px;
+
         @keyframes slide-to-top {
             0% {
                 opacity: 0;
                 bottom: -72px;
             }
+
             100% {
                 opacity: 1;
                 bottom: 0;
             }
         }
+
         // DOCK CUSTOMIZATION
         .dock {
             position: absolute;
@@ -68,6 +72,7 @@ main {
             left: 0;
             right: 0;
             margin: auto;
+
             .dock_app {
                 height: 40px;
                 width: 40px;
@@ -79,6 +84,7 @@ main {
                 background: colors.$secondary;
                 cursor: pointer;
                 font-size: 20px;
+
                 span {
                     position: fixed;
                     background: color.change(colors.$bg, $alpha: 0.5);
@@ -95,15 +101,19 @@ main {
                     pointer-events: none;
                     width: max-content;
                 }
+
                 &:hover {
                     background: color.adjust(colors.$secondary, $lightness: 5%);
+
                     span {
                         opacity: 1;
                     }
                 }
+
                 &.primary {
                     background: colors.$white;
                     color: colors.$purple;
+
                     &:hover {
                         background: colors.$purple;
                         color: colors.$white;
@@ -111,6 +121,7 @@ main {
                 }
             }
         }
+
         // UTILITY MENU CUSTOMIZATION
         .utility_menu {
             height: 48px;
@@ -122,6 +133,7 @@ main {
             gap: 4px;
             border-radius: 99px;
             padding: 0 12px;
+
             .utility_icon {
                 height: 32px;
                 width: 32px;
@@ -133,6 +145,7 @@ main {
                 background: colors.$white;
                 cursor: pointer;
                 font-size: 13px;
+
                 span {
                     position: fixed;
                     background: color.change(colors.$bg, $alpha: 0.5);
@@ -149,15 +162,18 @@ main {
                     pointer-events: none;
                     width: max-content;
                 }
+
                 &:hover {
                     background: color.adjust(colors.$secondary, $lightness: 5%);
                     color: colors.$white;
+
                     span {
                         opacity: 1;
                     }
                 }
             }
         }
+
         // SEARCHING CUSTOMIZATION
         .searching {
             display: flex;
@@ -168,6 +184,7 @@ main {
             border-radius: 99px;
             background: color.change(colors.$white, $alpha: .3);
             backdrop-filter: blur(5px);
+
             span {
                 color: colors.$white;
                 background: colors.$secondary;
@@ -179,6 +196,7 @@ main {
                 font-size: 16px;
                 justify-content: center;
             }
+
             input {
                 background: transparent;
                 border-radius: 99px;
@@ -188,17 +206,20 @@ main {
                 color: colors.$white;
                 font-weight: 500;
                 font-size: 13px;
+
                 &::placeholder {
                     color: colors.$white;
                 }
             }
         }
     }
+
     // SCREEN ELEMENTS CUSTOMIZATION
     .screen_elements {
         width: 100%;
         height: 100%;
         position: absolute;
+
         // CLOCK CUSTOMIZATION
         .clock {
             display: flex;
@@ -209,17 +230,20 @@ main {
             flex-direction: column;
             text-align: center;
             padding-top: 48px;
+
             span {
                 color: colors.$white;
                 font-weight: 700;
                 font-size: 3rem;
                 font-family: 'Nunito', 'Poppins', sans-serif;
+
                 &:nth-child(2) {
                     font-weight: 500;
                     font-size: 1.5rem;
                 }
             }
         }
+
         // POPUP CUSTOMIZATION
         .popup {
             width: 512px;
@@ -232,11 +256,121 @@ main {
             left: 0;
             right: 0;
             margin: auto;
+
+            &#sound_control {
+                height: 58px;
+                background-color: transparent;
+            }
+
             .content {
                 padding: 8px;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
+
+                .sound_control {
+                    display: flex;
+                    align-items: center;
+                    background: colors.$white;
+                    height: 42px;
+                    border-radius: 99px;
+                    padding: 0px 8px;
+                    gap: 12px;
+
+                    .icon {
+                        height: 32px;
+                        min-width: 32px;
+                        background: colors.$secondary;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 99px;
+                        color: colors.$white;
+                    }
+
+                    .slider {
+                        display: flex;
+                        width: 100%;
+
+                        input {
+                            width: 100%;
+                            appearance: none;
+                            -webkit-appearance: none;
+                            background: linear-gradient(to right,
+                                    colors.$secondary var(--value, 0%),
+                                    color.change(colors.$secondary, $alpha: .2) var(--value, 0%));
+                            height: 8px;
+                            border-radius: 99px;
+                            cursor: pointer;
+                            box-shadow: inset 0 1px 2px rgba(0, 0, 0, .15);
+                            accent-color: colors.$secondary;
+
+                            &:hover {
+                                background: linear-gradient(to right,
+                                        color.adjust(colors.$secondary, $lightness: 3%) var(--value, 0%),
+                                        color.change(colors.$secondary, $alpha: .25) var(--value, 0%));
+                            }
+
+                            &:focus {
+                                outline: none;
+                                box-shadow: 0 0 0 4px color.change(colors.$secondary, $alpha: .15), inset 0 1px 2px rgba(0, 0, 0, .15);
+                            }
+
+                            &::-webkit-slider-runnable-track {
+                                height: 8px;
+                                background: transparent;
+                                border-radius: 99px;
+                            }
+
+                            &::-webkit-slider-thumb {
+                                -webkit-appearance: none;
+                                appearance: none;
+                                width: 18px;
+                                height: 18px;
+                                border-radius: 50%;
+                                background: colors.$white;
+                                border: 2px solid colors.$secondary;
+                                box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+                                margin-top: -5px; // center the thumb over the 8px track
+                                transition: transform .15s ease, box-shadow .15s ease;
+                            }
+
+                            &:active::-webkit-slider-thumb {
+                                transform: scale(1.05);
+                                box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+                            }
+
+                            /* Firefox */
+                            &::-moz-range-track {
+                                height: 8px;
+                                background: color.change(colors.$secondary, $alpha: .2);
+                                border-radius: 99px;
+                            }
+
+                            &::-moz-range-progress {
+                                height: 8px;
+                                background: colors.$secondary;
+                                border-radius: 99px 0 0 99px;
+                            }
+
+                            &::-moz-range-thumb {
+                                width: 18px;
+                                height: 18px;
+                                border-radius: 50%;
+                                background: colors.$white;
+                                border: 2px solid colors.$secondary;
+                                box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+                                transition: transform .15s ease, box-shadow .15s ease;
+                            }
+
+                            &:active::-moz-range-thumb {
+                                transform: scale(1.05);
+                                box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+                            }
+                        }
+                    }
+                }
+
                 .search_apps {
                     display: flex;
                     align-items: center;
@@ -245,6 +379,7 @@ main {
                     border-radius: 99px;
                     padding: 0px 8px;
                     gap: 12px;
+
                     .icon {
                         height: 32px;
                         width: 32px;
@@ -255,34 +390,41 @@ main {
                         border-radius: 99px;
                         color: colors.$white;
                     }
+
                     input {
                         background: transparent;
                         color: colors.$bg;
                         font-size: 14px;
                         font-weight: 500;
+
                         &::placeholder {
                             color: colors.$hold;
                         }
                     }
                 }
+
                 .apps_list {
                     display: flex;
                     flex-direction: column;
                     overflow-y: auto;
                     max-height: 282px;
                     gap: 8px;
+
                     &::-webkit-scrollbar {
                         display: none;
                     }
+
                     .app {
                         display: flex;
                         align-items: center;
                         gap: 8px;
                         padding: 4px;
                         border-radius: 99px;
+
                         &:hover {
                             background: color.change(colors.$white, $alpha: .3);
                         }
+
                         .icon {
                             height: 32px;
                             width: 32px;
@@ -294,6 +436,7 @@ main {
                             border-radius: 99px;
                             font-size: 14px;
                         }
+
                         span {
                             color: colors.$bg;
                             font-weight: 500;
