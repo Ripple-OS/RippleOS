@@ -6,6 +6,8 @@ import FileExplorerItem from "./FileExplorerItem";
 import FileExplorerSidebar from "./FileExplorerSidebar";
 import FileExplorerTopBar from "./FileExplorerTopBar";
 import FileExplorerInputPopup from "./FileExplorerInputPopup";
+import FileExplorerContextMenu from "./FileExplorerContextMenu";
+import FileExplorerDeletePopup from "./FileExplorerDeletePopup";
 import {
     NavigationHistory,
     navigateToDirectory as navigateToDirectoryHelper,
@@ -23,6 +25,18 @@ export default function FileExplorer({ onClose }) {
     const [isInputPopupOpen, setIsInputPopupOpen] = useState(false);
     const [inputPopupType, setInputPopupType] = useState("file");
     const [inputPopupTitle, setInputPopupTitle] = useState("Create New");
+    const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+    const [contextMenuPosition, setContextMenuPosition] = useState({
+        x: 0,
+        y: 0,
+    });
+    const [clipboard, setClipboard] = useState({
+        items: [],
+        action: null,
+        sourcePath: null,
+    }); // 'copy' or 'cut'
+    const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
+    const [deleteItems, setDeleteItems] = useState([]);
 
     const navigationHistory = useRef(new NavigationHistory());
     const selectionTimeoutRef = useRef(null);
@@ -170,6 +184,170 @@ export default function FileExplorer({ onClose }) {
         }
     };
 
+    // Clipboard functions
+    const handleCopy = () => {
+        const selectedItemsList = Array.from(selectedItems).map(
+            (index) => fileItems[index]
+        );
+        setClipboard({
+            items: selectedItemsList,
+            action: "copy",
+            sourcePath: null,
+        });
+        setIsContextMenuOpen(false);
+    };
+
+    const handleCut = () => {
+        const selectedItemsList = Array.from(selectedItems).map(
+            (index) => fileItems[index]
+        );
+        setClipboard({
+            items: selectedItemsList,
+            action: "cut",
+            sourcePath: currentDirectory,
+        });
+        setIsContextMenuOpen(false);
+    };
+
+    const handlePaste = () => {
+        if (clipboard.items.length === 0) return;
+
+        try {
+            clipboard.items.forEach((item) => {
+                if (clipboard.action === "copy") {
+                    // Copy logic - create duplicate
+                    if (item.type === "folder") {
+                        fileSystemStorage.createFolder(
+                            currentDirectory,
+                            item.name
+                        );
+                    } else {
+                        fileSystemStorage.createFile(
+                            currentDirectory,
+                            item.name,
+                            item.type
+                        );
+                    }
+                } else if (clipboard.action === "cut") {
+                    // Cut logic - move item
+                    if (
+                        clipboard.sourcePath &&
+                        clipboard.sourcePath !== currentDirectory
+                    ) {
+                        // Move the item from source to destination
+                        fileSystemStorage.moveItem(
+                            clipboard.sourcePath,
+                            currentDirectory,
+                            item.name
+                        );
+                    } else {
+                        // If same directory, just create a copy
+                        if (item.type === "folder") {
+                            fileSystemStorage.createFolder(
+                                currentDirectory,
+                                item.name
+                            );
+                        } else {
+                            fileSystemStorage.createFile(
+                                currentDirectory,
+                                item.name,
+                                item.type
+                            );
+                        }
+                    }
+                }
+            });
+
+            // Clear clipboard after paste
+            setClipboard({ items: [], action: null, sourcePath: null });
+
+            // Refresh current directory
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(currentDirectory);
+            setFileItems(directoryData.items);
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
+    // Context menu functions
+    const handleContextMenu = (event, index = null) => {
+        event.preventDefault();
+
+        if (index !== null) {
+            // Right-click on specific item
+            if (!selectedItems.has(index)) {
+                setSelectedItems(new Set([index]));
+                setLastSelectedIndex(index);
+            }
+        }
+
+        setContextMenuPosition({ x: event.clientX, y: event.clientY });
+        setIsContextMenuOpen(true);
+    };
+
+    const handleDelete = () => {
+        const selectedItemsList = Array.from(selectedItems).map(
+            (index) => fileItems[index]
+        );
+
+        setDeleteItems(selectedItemsList);
+        setIsDeletePopupOpen(true);
+        setIsContextMenuOpen(false);
+    };
+
+    const handleDeleteConfirm = () => {
+        try {
+            deleteItems.forEach((item) => {
+                fileSystemStorage.deleteItem(currentDirectory, item.name);
+            });
+
+            // Refresh current directory
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(currentDirectory);
+            setFileItems(directoryData.items);
+
+            // Clear selection
+            setSelectedItems(new Set());
+            setLastSelectedIndex(-1);
+        } catch (error) {
+            alert(error.message);
+        }
+        setIsDeletePopupOpen(false);
+        setDeleteItems([]);
+    };
+
+    const handleDeleteCancel = () => {
+        setIsDeletePopupOpen(false);
+        setDeleteItems([]);
+    };
+
+    const handleRename = () => {
+        // For now, just show a simple prompt
+        const selectedIndex = Array.from(selectedItems)[0];
+        if (selectedIndex !== undefined) {
+            const item = fileItems[selectedIndex];
+            const newName = prompt("Enter new name:", item.name);
+            if (newName && newName.trim() && newName !== item.name) {
+                try {
+                    fileSystemStorage.renameItem(
+                        currentDirectory,
+                        item.name,
+                        newName.trim()
+                    );
+                    const directoryData =
+                        fileSystemStorage.getDirectoryContents(
+                            currentDirectory
+                        );
+                    setFileItems(directoryData.items);
+                } catch (error) {
+                    alert(error.message);
+                }
+            }
+        }
+        setIsContextMenuOpen(false);
+    };
+
     return (
         <Window
             title="File Explorer"
@@ -188,6 +366,9 @@ export default function FileExplorer({ onClose }) {
                     canGoForward={navigationHistory.current.canGoForward()}
                     onNewFolder={handleNewFolder}
                     onNewFile={handleNewFile}
+                    onCopy={handleCopy}
+                    onPaste={handlePaste}
+                    canPaste={clipboard.items.length > 0}
                 />
 
                 {/* Main Content */}
@@ -202,6 +383,7 @@ export default function FileExplorer({ onClose }) {
                     <div
                         className="content-pane"
                         onClick={handleContentPaneClick}
+                        onContextMenu={(event) => handleContextMenu(event)}
                     >
                         {currentView === "list" ? (
                             <>
@@ -242,6 +424,7 @@ export default function FileExplorer({ onClose }) {
                                                 index
                                             )}
                                             onItemClick={handleItemClick}
+                                            onContextMenu={handleContextMenu}
                                             viewMode="list"
                                         />
                                     ))}
@@ -257,6 +440,7 @@ export default function FileExplorer({ onClose }) {
                                         index={index}
                                         isSelected={selectedItems.has(index)}
                                         onItemClick={handleItemClick}
+                                        onContextMenu={handleContextMenu}
                                         viewMode="grid"
                                     />
                                 ))}
@@ -273,6 +457,29 @@ export default function FileExplorer({ onClose }) {
                 onSubmit={handlePopupSubmit}
                 type={inputPopupType}
                 title={inputPopupTitle}
+            />
+
+            {/* Context Menu */}
+            <FileExplorerContextMenu
+                isOpen={isContextMenuOpen}
+                onClose={() => setIsContextMenuOpen(false)}
+                position={contextMenuPosition}
+                onCopy={handleCopy}
+                onPaste={handlePaste}
+                onCut={handleCut}
+                onDelete={handleDelete}
+                onRename={handleRename}
+                canPaste={clipboard.items.length > 0}
+                hasSelection={selectedItems.size > 0}
+            />
+
+            {/* Delete Confirmation Popup */}
+            <FileExplorerDeletePopup
+                isOpen={isDeletePopupOpen}
+                onClose={() => setIsDeletePopupOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+                items={deleteItems}
             />
         </Window>
     );

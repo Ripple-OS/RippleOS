@@ -20,6 +20,9 @@ export default function FileExplorerTopBar({
     canGoForward,
     onNewFolder,
     onNewFile,
+    onCopy,
+    onPaste,
+    canPaste,
 }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
@@ -61,6 +64,9 @@ export default function FileExplorerTopBar({
                         onClose={() => setIsDropdownOpen(false)}
                         onNewFolder={handleNewFolder}
                         onNewFile={handleNewFile}
+                        onCopy={onCopy}
+                        onPaste={onPaste}
+                        canPaste={canPaste}
                         position={dropdownPosition}
                     />
                 </div>

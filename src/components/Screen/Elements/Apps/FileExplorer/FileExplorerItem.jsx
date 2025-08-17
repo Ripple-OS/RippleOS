@@ -7,6 +7,12 @@ import {
     faFilePdf,
     faCompactDisc,
     faBox,
+    faFile,
+    faFileWord,
+    faFileAlt,
+    faImage,
+    faMusic,
+    faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function FileExplorerItem({
@@ -14,6 +20,7 @@ export default function FileExplorerItem({
     index,
     isSelected,
     onItemClick,
+    onContextMenu,
     viewMode = "list",
 }) {
     const getFileIcon = (type) => {
@@ -24,12 +31,22 @@ export default function FileExplorerItem({
                 return faFileArchive;
             case "pdf":
                 return faFilePdf;
+            case "document":
+                return faFileWord;
+            case "text":
+                return faFileAlt;
+            case "image":
+                return faImage;
+            case "audio":
+                return faMusic;
+            case "video":
+                return faVideo;
             case "iso":
                 return faCompactDisc;
             case "rpm":
                 return faBox;
             default:
-                return faFolder;
+                return faFile;
         }
     };
 
@@ -41,12 +58,22 @@ export default function FileExplorerItem({
                 return "#ff6b35";
             case "pdf":
                 return "#4a90e2";
+            case "document":
+                return "#2e5aa8";
+            case "text":
+                return "#95a5a6";
+            case "image":
+                return "#e74c3c";
+            case "audio":
+                return "#9b59b6";
+            case "video":
+                return "#e67e22";
             case "iso":
                 return "#ffffff";
             case "rpm":
                 return "#e74c3c";
             default:
-                return "#ffd700";
+                return "#95a5a6";
         }
     };
 
@@ -54,13 +81,16 @@ export default function FileExplorerItem({
         onItemClick(item, index, event);
     };
 
-
+    const handleContextMenu = (event) => {
+        onContextMenu(event, index);
+    };
 
     if (viewMode === "list") {
         return (
             <div
                 className={`file-row ${isSelected ? "selected" : ""}`}
                 onClick={handleClick}
+                onContextMenu={handleContextMenu}
             >
                 <div className="file-icon">
                     <FontAwesomeIcon
@@ -88,6 +118,7 @@ export default function FileExplorerItem({
         <div
             className={`grid-item ${isSelected ? "selected" : ""}`}
             onClick={handleClick}
+            onContextMenu={handleContextMenu}
         >
             <div className="grid-item-icon">
                 <FontAwesomeIcon
