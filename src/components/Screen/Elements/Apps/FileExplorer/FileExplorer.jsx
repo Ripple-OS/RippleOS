@@ -8,6 +8,7 @@ import FileExplorerTopBar from "./FileExplorerTopBar";
 import FileExplorerInputPopup from "./FileExplorerInputPopup";
 import FileExplorerContextMenu from "./FileExplorerContextMenu";
 import FileExplorerDeletePopup from "./FileExplorerDeletePopup";
+import FileExplorerRenamePopup from "./FileExplorerRenamePopup";
 import {
     NavigationHistory,
     navigateToDirectory as navigateToDirectoryHelper,
@@ -37,6 +38,8 @@ export default function FileExplorer({ onClose }) {
     }); // 'copy' or 'cut'
     const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
     const [deleteItems, setDeleteItems] = useState([]);
+    const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
+    const [renameItem, setRenameItem] = useState(null);
 
     const navigationHistory = useRef(new NavigationHistory());
     const selectionTimeoutRef = useRef(null);
@@ -323,29 +326,28 @@ export default function FileExplorer({ onClose }) {
     };
 
     const handleRename = () => {
-        // For now, just show a simple prompt
         const selectedIndex = Array.from(selectedItems)[0];
         if (selectedIndex !== undefined) {
             const item = fileItems[selectedIndex];
-            const newName = prompt("Enter new name:", item.name);
-            if (newName && newName.trim() && newName !== item.name) {
-                try {
-                    fileSystemStorage.renameItem(
-                        currentDirectory,
-                        item.name,
-                        newName.trim()
-                    );
-                    const directoryData =
-                        fileSystemStorage.getDirectoryContents(
-                            currentDirectory
-                        );
-                    setFileItems(directoryData.items);
-                } catch (error) {
-                    alert(error.message);
-                }
-            }
+            setRenameItem(item);
+            setIsRenamePopupOpen(true);
         }
         setIsContextMenuOpen(false);
+    };
+
+    const handleRenameConfirm = (newName) => {
+        try {
+            fileSystemStorage.renameItem(
+                currentDirectory,
+                renameItem.name,
+                newName
+            );
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(currentDirectory);
+            setFileItems(directoryData.items);
+        } catch (error) {
+            alert(error.message);
+        }
     };
 
     return (
@@ -480,6 +482,14 @@ export default function FileExplorer({ onClose }) {
                 onConfirm={handleDeleteConfirm}
                 onCancel={handleDeleteCancel}
                 items={deleteItems}
+            />
+
+            {/* Rename Popup */}
+            <FileExplorerRenamePopup
+                isOpen={isRenamePopupOpen}
+                onClose={() => setIsRenamePopupOpen(false)}
+                onConfirm={handleRenameConfirm}
+                item={renameItem}
             />
         </Window>
     );
