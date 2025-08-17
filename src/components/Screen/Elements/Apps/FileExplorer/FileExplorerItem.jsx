@@ -11,6 +11,8 @@ import {
 
 export default function FileExplorerItem({
     item,
+    index,
+    isSelected,
     onItemClick,
     viewMode = "list",
 }) {
@@ -48,9 +50,18 @@ export default function FileExplorerItem({
         }
     };
 
+    const handleClick = (event) => {
+        onItemClick(item, index, event);
+    };
+
+
+
     if (viewMode === "list") {
         return (
-            <div className="file-row" onClick={() => onItemClick(item)}>
+            <div
+                className={`file-row ${isSelected ? "selected" : ""}`}
+                onClick={handleClick}
+            >
                 <div className="file-icon">
                     <FontAwesomeIcon
                         icon={getFileIcon(item.type)}
@@ -74,7 +85,10 @@ export default function FileExplorerItem({
 
     // Grid view
     return (
-        <div className="grid-item" onClick={() => onItemClick(item)}>
+        <div
+            className={`grid-item ${isSelected ? "selected" : ""}`}
+            onClick={handleClick}
+        >
             <div className="grid-item-icon">
                 <FontAwesomeIcon
                     icon={getFileIcon(item.type)}

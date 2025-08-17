@@ -17,8 +17,11 @@ export default function FileExplorer({ onClose }) {
     const [currentDirectory, setCurrentDirectory] = useState("Home");
     const [currentPath, setCurrentPath] = useState("Home");
     const [fileItems, setFileItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState(new Set());
+    const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
 
     const navigationHistory = useRef(new NavigationHistory());
+    const selectionTimeoutRef = useRef(null);
 
     // Initialize with Home directory
     useEffect(() => {
@@ -31,6 +34,9 @@ export default function FileExplorer({ onClose }) {
         setCurrentPath(directoryData.path);
         setFileItems(directoryData.items);
         navigationHistory.current.push(path);
+        // Clear selection when navigating to new directory
+        setSelectedItems(new Set());
+        setLastSelectedIndex(-1);
     };
 
     const handleSidebarItemClick = (itemId) => {
@@ -53,17 +59,49 @@ export default function FileExplorer({ onClose }) {
         navigateToDirectory(correctPath);
     };
 
-    const handleItemClick = (item) => {
-        if (item.type === "folder") {
-            const newPath = navigateToDirectoryHelper(
-                currentDirectory,
-                item.name
-            );
-            navigateToDirectory(newPath);
-        } else {
-            // Handle file click (could open file, show preview, etc.)
-            console.log("File clicked:", item.name);
+    const handleItemClick = (item, index, event) => {
+        // Clear any pending selection timeout
+        if (selectionTimeoutRef.current) {
+            clearTimeout(selectionTimeoutRef.current);
         }
+
+        // Handle double click
+        if (event.detail === 2) {
+            if (item.type === "folder") {
+                const newPath = navigateToDirectoryHelper(
+                    currentDirectory,
+                    item.name
+                );
+                navigateToDirectory(newPath);
+            } else {
+                // Handle file double click (could open file, show preview, etc.)
+                console.log("File double-clicked:", item.name);
+            }
+            return;
+        }
+
+        // Handle single click for selection
+        handleItemSelection(item, index, event);
+    };
+
+    const handleItemSelection = (item, index, event) => {
+        const newSelectedItems = new Set(selectedItems);
+
+        if (event.shiftKey && lastSelectedIndex !== -1) {
+            // Shift + click for range selection
+            const start = Math.min(lastSelectedIndex, index);
+            const end = Math.max(lastSelectedIndex, index);
+            for (let i = start; i <= end; i++) {
+                newSelectedItems.add(i);
+            }
+        } else {
+            // Single click - select only this item
+            newSelectedItems.clear();
+            newSelectedItems.add(index);
+            setLastSelectedIndex(index);
+        }
+
+        setSelectedItems(newSelectedItems);
     };
 
     const handleBack = () => {
@@ -84,6 +122,15 @@ export default function FileExplorer({ onClose }) {
             setCurrentPath(directoryData.path);
             setFileItems(directoryData.items);
         }
+    };
+
+    // Handle click outside to clear selection
+    const handleContentPaneClick = (event) => {
+        if (event.target.closest(".file-row, .grid-item")) {
+            return; // Don't clear if clicking on an item
+        }
+        setSelectedItems(new Set());
+        setLastSelectedIndex(-1);
     };
 
     return (
@@ -113,7 +160,10 @@ export default function FileExplorer({ onClose }) {
                     />
 
                     {/* Content Pane */}
-                    <div className="content-pane">
+                    <div
+                        className="content-pane"
+                        onClick={handleContentPaneClick}
+                    >
                         {currentView === "list" ? (
                             <>
                                 {/* Column Headers */}
@@ -148,6 +198,10 @@ export default function FileExplorer({ onClose }) {
                                         <FileExplorerItem
                                             key={index}
                                             item={item}
+                                            index={index}
+                                            isSelected={selectedItems.has(
+                                                index
+                                            )}
                                             onItemClick={handleItemClick}
                                             viewMode="list"
                                         />
@@ -161,6 +215,8 @@ export default function FileExplorer({ onClose }) {
                                     <FileExplorerItem
                                         key={index}
                                         item={item}
+                                        index={index}
+                                        isSelected={selectedItems.has(index)}
                                         onItemClick={handleItemClick}
                                         viewMode="grid"
                                     />

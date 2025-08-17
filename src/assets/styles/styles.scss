@@ -763,6 +763,30 @@ main {
                 background-color: rgba(255, 255, 255, 0.02);
                 position: relative;
                 min-height: 100px;
+                user-select: none;
+
+                &.selected {
+                    background-color: rgba(74, 144, 226, 0.2);
+                    border-color: #4a90e2;
+                    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+
+                    .grid-item-name {
+                        color: #ffffff;
+                    }
+
+                    .grid-item-size,
+                    .grid-item-modified {
+                        color: #e0e0e0;
+                    }
+
+                    .star-icon {
+                        color: #ffffff !important;
+
+                        &:hover {
+                            color: #ffd700 !important;
+                        }
+                    }
+                }
 
                 @media (min-width: 600px) {
                     padding: 16px 12px;
@@ -1064,9 +1088,32 @@ main {
                     cursor: pointer;
                     transition: background-color 0.2s;
                     color: #e0e0e0;
+                    user-select: none;
 
                     &:hover {
                         background-color: #3a4a5a;
+                    }
+
+                    &.selected {
+                        background-color: #4a90e2;
+                        color: #ffffff;
+
+                        .file-name {
+                            color: #ffffff;
+                        }
+
+                        .file-size,
+                        .file-modified {
+                            color: #e0e0e0;
+                        }
+
+                        .star-icon {
+                            color: #ffffff !important;
+
+                            &:hover {
+                                color: #ffd700 !important;
+                            }
+                        }
                     }
 
                     .file-icon {
