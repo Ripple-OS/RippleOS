@@ -5,11 +5,12 @@ import Window from "../Window/Window";
 import FileExplorerItem from "./FileExplorerItem";
 import FileExplorerSidebar from "./FileExplorerSidebar";
 import FileExplorerTopBar from "./FileExplorerTopBar";
+import FileExplorerInputPopup from "./FileExplorerInputPopup";
 import {
     NavigationHistory,
-    getDirectoryContents,
     navigateToDirectory as navigateToDirectoryHelper,
 } from "./fileSystemData";
+import { fileSystemStorage } from "./fileSystemStorage";
 
 export default function FileExplorer({ onClose }) {
     const [currentView, setCurrentView] = useState("list");
@@ -19,6 +20,9 @@ export default function FileExplorer({ onClose }) {
     const [fileItems, setFileItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState(new Set());
     const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
+    const [isInputPopupOpen, setIsInputPopupOpen] = useState(false);
+    const [inputPopupType, setInputPopupType] = useState("file");
+    const [inputPopupTitle, setInputPopupTitle] = useState("Create New");
 
     const navigationHistory = useRef(new NavigationHistory());
     const selectionTimeoutRef = useRef(null);
@@ -29,7 +33,7 @@ export default function FileExplorer({ onClose }) {
     }, []);
 
     const navigateToDirectory = (path) => {
-        const directoryData = getDirectoryContents(path);
+        const directoryData = fileSystemStorage.getDirectoryContents(path);
         setCurrentDirectory(path);
         setCurrentPath(directoryData.path);
         setFileItems(directoryData.items);
@@ -107,7 +111,8 @@ export default function FileExplorer({ onClose }) {
     const handleBack = () => {
         const previousPath = navigationHistory.current.back();
         if (previousPath) {
-            const directoryData = getDirectoryContents(previousPath);
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(previousPath);
             setCurrentDirectory(previousPath);
             setCurrentPath(directoryData.path);
             setFileItems(directoryData.items);
@@ -117,7 +122,8 @@ export default function FileExplorer({ onClose }) {
     const handleForward = () => {
         const nextPath = navigationHistory.current.forward();
         if (nextPath) {
-            const directoryData = getDirectoryContents(nextPath);
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(nextPath);
             setCurrentDirectory(nextPath);
             setCurrentPath(directoryData.path);
             setFileItems(directoryData.items);
@@ -131,6 +137,37 @@ export default function FileExplorer({ onClose }) {
         }
         setSelectedItems(new Set());
         setLastSelectedIndex(-1);
+    };
+
+    // Create new folder
+    const handleNewFolder = () => {
+        setInputPopupType("folder");
+        setInputPopupTitle("Create New Folder");
+        setIsInputPopupOpen(true);
+    };
+
+    // Create new file
+    const handleNewFile = () => {
+        setInputPopupType("file");
+        setInputPopupTitle("Create New File");
+        setIsInputPopupOpen(true);
+    };
+
+    // Handle popup submission
+    const handlePopupSubmit = (name) => {
+        try {
+            if (inputPopupType === "folder") {
+                fileSystemStorage.createFolder(currentDirectory, name);
+            } else {
+                fileSystemStorage.createFile(currentDirectory, name);
+            }
+            // Refresh current directory
+            const directoryData =
+                fileSystemStorage.getDirectoryContents(currentDirectory);
+            setFileItems(directoryData.items);
+        } catch (error) {
+            alert(error.message);
+        }
     };
 
     return (
@@ -149,6 +186,8 @@ export default function FileExplorer({ onClose }) {
                     onForward={handleForward}
                     canGoBack={navigationHistory.current.canGoBack()}
                     canGoForward={navigationHistory.current.canGoForward()}
+                    onNewFolder={handleNewFolder}
+                    onNewFile={handleNewFile}
                 />
 
                 {/* Main Content */}
@@ -226,6 +265,15 @@ export default function FileExplorer({ onClose }) {
                     </div>
                 </div>
             </div>
+
+            {/* Input Popup */}
+            <FileExplorerInputPopup
+                isOpen={isInputPopupOpen}
+                onClose={() => setIsInputPopupOpen(false)}
+                onSubmit={handlePopupSubmit}
+                type={inputPopupType}
+                title={inputPopupTitle}
+            />
         </Window>
     );
 }

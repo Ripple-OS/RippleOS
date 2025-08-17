@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faSearch,
@@ -8,32 +8,66 @@ import {
     faTh,
     faList,
 } from "@fortawesome/free-solid-svg-icons";
+import FileExplorerDropdown from "./FileExplorerDropdown";
 
-export default function FileExplorerTopBar({ 
-    currentView, 
-    setCurrentView, 
+export default function FileExplorerTopBar({
+    currentView,
+    setCurrentView,
     currentPath,
     onBack,
     onForward,
     canGoBack,
-    canGoForward
+    canGoForward,
+    onNewFolder,
+    onNewFile,
 }) {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
+    const dropdownButtonRef = useRef(null);
+
+    const handleDropdownToggle = (event) => {
+        event.preventDefault();
+        const buttonRect = dropdownButtonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+            x: buttonRect.left,
+            y: buttonRect.bottom + 5,
+        });
+        setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleNewFolder = () => {
+        setIsDropdownOpen(false);
+        onNewFolder();
+    };
+
+    const handleNewFile = () => {
+        setIsDropdownOpen(false);
+        onNewFile();
+    };
+
     return (
         <div className="top-bar">
             <div className="left-section">
-                <FontAwesomeIcon
-                    icon={faSearch}
-                    className="search-icon"
-                />
+                <FontAwesomeIcon icon={faSearch} className="search-icon" />
                 <span className="title">Files</span>
-                <FontAwesomeIcon
-                    icon={faEllipsisH}
-                    className="more-icon"
-                />
+                <div className="dropdown-container" ref={dropdownButtonRef}>
+                    <FontAwesomeIcon
+                        icon={faEllipsisH}
+                        className="more-icon"
+                        onClick={handleDropdownToggle}
+                    />
+                    <FileExplorerDropdown
+                        isOpen={isDropdownOpen}
+                        onClose={() => setIsDropdownOpen(false)}
+                        onNewFolder={handleNewFolder}
+                        onNewFile={handleNewFile}
+                        position={dropdownPosition}
+                    />
+                </div>
             </div>
 
             <div className="center-section">
-                <button 
+                <button
                     className="nav-button"
                     onClick={onBack}
                     disabled={!canGoBack}
@@ -41,7 +75,7 @@ export default function FileExplorerTopBar({
                 >
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
-                <button 
+                <button
                     className="nav-button"
                     onClick={onForward}
                     disabled={!canGoForward}
@@ -69,10 +103,9 @@ export default function FileExplorerTopBar({
                 >
                     <FontAwesomeIcon icon={faList} />
                 </button>
-                <FontAwesomeIcon
-                    icon={faEllipsisH}
-                    className="more-icon"
-                />
+                <div className="dropdown-container">
+                    <FontAwesomeIcon icon={faEllipsisH} className="more-icon" />
+                </div>
             </div>
         </div>
     );
