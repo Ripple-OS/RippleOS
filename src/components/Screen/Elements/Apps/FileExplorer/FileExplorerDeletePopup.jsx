@@ -66,10 +66,7 @@ export default function FileExplorerDeletePopup({
                 </div>
 
                 <div className="popup-content">
-                    <p className="delete-message">
-                        Are you sure you want to delete{" "}
-                        <strong>{itemName}</strong>?
-                    </p>
+                    <p className="delete-message">{`Are you sure you want to delete ${itemName}?`}</p>
 
                     {itemCount > 1 && (
                         <div className="delete-items-list">

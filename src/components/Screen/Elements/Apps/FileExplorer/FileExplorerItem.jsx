@@ -22,6 +22,8 @@ export default function FileExplorerItem({
     onItemClick,
     onContextMenu,
     viewMode = "list",
+    onItemDragStart,
+    onItemDrop,
 }) {
     const getFileIcon = (type) => {
         switch (type) {
@@ -85,12 +87,32 @@ export default function FileExplorerItem({
         onContextMenu(event, index);
     };
 
+    const handleDragStart = (event) => {
+        if (onItemDragStart) onItemDragStart(event, item, index);
+    };
+
+    const handleDragOver = (event) => {
+        if (item.type === "folder") {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        }
+    };
+
+    const handleDrop = (event) => {
+        if (onItemDrop && item.type === "folder")
+            onItemDrop(event, item, index);
+    };
+
     if (viewMode === "list") {
         return (
             <div
                 className={`file-row ${isSelected ? "selected" : ""}`}
                 onClick={handleClick}
                 onContextMenu={handleContextMenu}
+                draggable
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
             >
                 <div className="file-icon">
                     <FontAwesomeIcon
@@ -119,6 +141,10 @@ export default function FileExplorerItem({
             className={`grid-item ${isSelected ? "selected" : ""}`}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
+            draggable
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
         >
             <div className="grid-item-icon">
                 <FontAwesomeIcon

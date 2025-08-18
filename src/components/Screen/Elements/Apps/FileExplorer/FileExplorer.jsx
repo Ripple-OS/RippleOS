@@ -68,7 +68,6 @@ export default function FileExplorer({ onClose }) {
             Home: "Home",
             Recent: "Recent",
             Starred: "Starred",
-            Trash: "Trash",
             Documents: "Home/Documents",
             Downloads: "Home/Downloads",
             Pictures: "Home/Pictures",
@@ -123,6 +122,61 @@ export default function FileExplorer({ onClose }) {
         }
 
         setSelectedItems(newSelectedItems);
+    };
+
+    // Drag & Drop
+    const dragDataRef = useRef(null);
+
+    const handleItemDragStart = (event, item, index) => {
+        const itemsToMove =
+            selectedItems.size > 0 && selectedItems.has(index)
+                ? Array.from(selectedItems).map((i) => fileItems[i])
+                : [item];
+        dragDataRef.current = {
+            items: itemsToMove,
+            fromPath: currentDirectory,
+        };
+        event.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({ count: itemsToMove.length })
+        );
+        event.dataTransfer.effectAllowed = "move";
+    };
+
+    const performMoveItems = (toPath) => {
+        if (!dragDataRef.current) return;
+        const { items, fromPath } = dragDataRef.current;
+        // Skip no-op
+        if (toPath === fromPath) return;
+        items.forEach((it) => {
+            fileSystemStorage.moveItem(fromPath, toPath, it.name);
+        });
+        // Refresh
+        const directoryData =
+            fileSystemStorage.getDirectoryContents(currentDirectory);
+        setFileItems(directoryData.items);
+        dragDataRef.current = null;
+    };
+
+    const handleItemDrop = (event, targetItem) => {
+        event.preventDefault();
+        if (targetItem.type !== "folder") return;
+        const destPath = navigateToDirectoryHelper(
+            currentDirectory,
+            targetItem.name
+        );
+        performMoveItems(destPath);
+    };
+
+    const handleContentDrop = (event) => {
+        event.preventDefault();
+        // Drop into current directory
+        performMoveItems(currentDirectory);
+    };
+
+    const handleContentDragOver = (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
     };
 
     const handleBack = () => {
@@ -195,7 +249,7 @@ export default function FileExplorer({ onClose }) {
         setClipboard({
             items: selectedItemsList,
             action: "copy",
-            sourcePath: null,
+            sourcePath: currentDirectory,
         });
         setIsContextMenuOpen(false);
     };
@@ -218,19 +272,12 @@ export default function FileExplorer({ onClose }) {
         try {
             clipboard.items.forEach((item) => {
                 if (clipboard.action === "copy") {
-                    // Copy logic - create duplicate
-                    if (item.type === "folder") {
-                        fileSystemStorage.createFolder(
-                            currentDirectory,
-                            item.name
-                        );
-                    } else {
-                        fileSystemStorage.createFile(
-                            currentDirectory,
-                            item.name,
-                            item.type
-                        );
-                    }
+                    // Copy logic - use new copyItem method that preserves folder contents
+                    fileSystemStorage.copyItem(
+                        clipboard.sourcePath || currentDirectory,
+                        currentDirectory,
+                        item.name
+                    );
                 } else if (clipboard.action === "cut") {
                     // Cut logic - move item
                     if (
@@ -244,19 +291,7 @@ export default function FileExplorer({ onClose }) {
                             item.name
                         );
                     } else {
-                        // If same directory, just create a copy
-                        if (item.type === "folder") {
-                            fileSystemStorage.createFolder(
-                                currentDirectory,
-                                item.name
-                            );
-                        } else {
-                            fileSystemStorage.createFile(
-                                currentDirectory,
-                                item.name,
-                                item.type
-                            );
-                        }
+                        // If same directory, treat cut->paste as no-op
                     }
                 }
             });
@@ -302,6 +337,7 @@ export default function FileExplorer({ onClose }) {
     const handleDeleteConfirm = () => {
         try {
             deleteItems.forEach((item) => {
+                // Permanent recursive deletion (Trash removed)
                 fileSystemStorage.deleteItem(currentDirectory, item.name);
             });
 
@@ -350,6 +386,11 @@ export default function FileExplorer({ onClose }) {
         }
     };
 
+    // Restore removed with Trash removal
+    const handleRestore = () => {
+        setIsContextMenuOpen(false);
+    };
+
     return (
         <Window
             title="File Explorer"
@@ -386,6 +427,8 @@ export default function FileExplorer({ onClose }) {
                         className="content-pane"
                         onClick={handleContentPaneClick}
                         onContextMenu={(event) => handleContextMenu(event)}
+                        onDragOver={handleContentDragOver}
+                        onDrop={handleContentDrop}
                     >
                         {currentView === "list" ? (
                             <>
@@ -428,6 +471,12 @@ export default function FileExplorer({ onClose }) {
                                             onItemClick={handleItemClick}
                                             onContextMenu={handleContextMenu}
                                             viewMode="list"
+                                            onItemDragStart={
+                                                handleItemDragStart
+                                            }
+                                            onItemDrop={(e) =>
+                                                handleItemDrop(e, item)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -444,6 +493,10 @@ export default function FileExplorer({ onClose }) {
                                         onItemClick={handleItemClick}
                                         onContextMenu={handleContextMenu}
                                         viewMode="grid"
+                                        onItemDragStart={handleItemDragStart}
+                                        onItemDrop={(e) =>
+                                            handleItemDrop(e, item)
+                                        }
                                     />
                                 ))}
                             </div>

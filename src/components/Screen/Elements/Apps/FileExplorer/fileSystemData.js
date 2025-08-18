@@ -545,18 +545,6 @@ export const fileSystemData = {
             },
         ],
     },
-    Trash: {
-        name: "Trash",
-        path: "Trash",
-        items: [
-            {
-                name: "deleted_file.txt",
-                type: "archive",
-                size: "0.5 MB",
-                modified: "2025-01-14 12:30",
-            },
-        ],
-    },
 };
 
 // Navigation history management

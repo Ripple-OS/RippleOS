@@ -12,15 +12,14 @@ import {
     faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 
-export default function FileExplorerSidebar({ 
-    activeSidebarItem, 
-    onSidebarItemClick 
+export default function FileExplorerSidebar({
+    activeSidebarItem,
+    onSidebarItemClick,
 }) {
     const sidebarItems = [
         { id: "Home", icon: faHome, label: "Home" },
         { id: "Recent", icon: faClock, label: "Recent" },
         { id: "Starred", icon: faStar, label: "Starred" },
-        { id: "Trash", icon: faTrash, label: "Trash" },
         { id: "Documents", icon: faFolder, label: "Documents" },
         { id: "Downloads", icon: faDownload, label: "Downloads" },
         { id: "Music", icon: faMusic, label: "Music" },

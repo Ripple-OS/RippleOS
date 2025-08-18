@@ -72,6 +72,42 @@ const DEFAULT_FILE_SYSTEM = {
             },
         ],
     },
+    "Home/Documents/Work": {
+        name: "Work",
+        path: "Home / Documents / Work",
+        items: [
+            {
+                name: "project1.pdf",
+                type: "pdf",
+                size: "1.2 MB",
+                modified: "2025-01-15 14:30",
+            },
+            {
+                name: "meeting-notes.txt",
+                type: "text",
+                size: "0.1 MB",
+                modified: "2025-01-14 09:15",
+            },
+        ],
+    },
+    "Home/Documents/Personal": {
+        name: "Personal",
+        path: "Home / Documents / Personal",
+        items: [
+            {
+                name: "resume.pdf",
+                type: "pdf",
+                size: "0.8 MB",
+                modified: "2025-01-13 16:45",
+            },
+            {
+                name: "diary.txt",
+                type: "text",
+                size: "0.2 MB",
+                modified: "2025-01-12 11:20",
+            },
+        ],
+    },
     "Home/Downloads": {
         name: "Downloads",
         path: "Home / Downloads",
@@ -131,10 +167,28 @@ const DEFAULT_FILE_SYSTEM = {
                 modified: "2025-01-08 15:20",
             },
             {
-                name: "nautilus-dropbox-2025.05.20-1.fc42.x86_64.rpm",
+                name: "nautilus-dropbox-2025-05.20-1.fc42.x86_64.rpm",
                 type: "rpm",
                 size: "1.8 MB",
                 modified: "2025-01-05 12:45",
+            },
+        ],
+    },
+    "Home/Downloads/postman-linux-x64": {
+        name: "postman-linux-x64",
+        path: "Home / Downloads / postman-linux-x64",
+        items: [
+            {
+                name: "postman",
+                type: "archive",
+                size: "120 MB",
+                modified: "2025-01-15 14:25",
+            },
+            {
+                name: "README.md",
+                type: "text",
+                size: "0.1 MB",
+                modified: "2025-01-15 14:25",
             },
         ],
     },
@@ -165,6 +219,42 @@ const DEFAULT_FILE_SYSTEM = {
                 type: "archive",
                 size: "3.4 MB",
                 modified: "2025-01-09 15:20",
+            },
+        ],
+    },
+    "Home/Pictures/Screenshots": {
+        name: "Screenshots",
+        path: "Home / Pictures / Screenshots",
+        items: [
+            {
+                name: "desktop-2025-01-15.png",
+                type: "image",
+                size: "0.8 MB",
+                modified: "2025-01-15 14:30",
+            },
+            {
+                name: "error-log.png",
+                type: "image",
+                size: "0.4 MB",
+                modified: "2025-01-14 09:15",
+            },
+        ],
+    },
+    "Home/Pictures/Vacation": {
+        name: "Vacation",
+        path: "Home / Pictures / Vacation",
+        items: [
+            {
+                name: "beach-sunset.jpg",
+                type: "image",
+                size: "2.1 MB",
+                modified: "2025-01-13 16:45",
+            },
+            {
+                name: "mountain-view.jpg",
+                type: "image",
+                size: "1.8 MB",
+                modified: "2025-01-12 11:20",
             },
         ],
     },
@@ -252,18 +342,6 @@ const DEFAULT_FILE_SYSTEM = {
             },
         ],
     },
-    Trash: {
-        name: "Trash",
-        path: "Trash",
-        items: [
-            {
-                name: "deleted_file.txt",
-                type: "archive",
-                size: "0.5 MB",
-                modified: "2025-01-14 12:30",
-            },
-        ],
-    },
 };
 
 // File System Storage Service
@@ -308,29 +386,99 @@ export class FileSystemStorage {
     // Get directory contents
     getDirectoryContents(path) {
         const fileSystem = this.getFileSystem();
-        return (
-            fileSystem[path] || {
-                name: "Unknown",
-                path: path,
-                items: [],
-            }
-        );
+        // Lazily create missing directory nodes for premade folders
+        if (!fileSystem[path]) {
+            this.ensureDirectoryExists(path, fileSystem);
+            this.saveFileSystem(fileSystem);
+        }
+        return fileSystem[path];
     }
 
-    // Generate unique name for folder
-    generateUniqueFolderName(parentPath, baseName) {
-        const fileSystem = this.getFileSystem();
-        const parentItems = fileSystem[parentPath]?.items || [];
+    // Helper method to construct proper paths for nested folders
+    constructPath(parentPath, folderName) {
+        // Handle special case for Home directory
+        if (parentPath === "Home") {
+            return `Home/${folderName}`;
+        }
 
+        // For all other paths, just concatenate with slash
+        // This handles nested paths like "Home/Documents/Work" correctly
+        return `${parentPath}/${folderName}`;
+    }
+
+    // Ensure directory node exists (and parent linkage), mutate provided fileSystem
+    ensureDirectoryExists(path, fileSystem = null) {
+        const fs = fileSystem || this.getFileSystem();
+        if (fs[path]) return fs[path];
+
+        // Derive name and parent path
+        if (path === "Home") {
+            fs["Home"] = fs["Home"] || {
+                name: "Home",
+                path: "Home",
+                items: [],
+            };
+            if (!fileSystem) this.saveFileSystem(fs);
+            return fs["Home"];
+        }
+
+        const parts = path.split("/");
+        const name = parts.pop();
+        const parentPath = parts.join("/") || "Home";
+
+        // Ensure parent exists first
+        this.ensureDirectoryExists(parentPath, fs);
+
+        // Create directory node
+        fs[path] = {
+            name,
+            path: path.replace(/^Home\//, "Home / "),
+            items: [],
+        };
+
+        // Ensure parent lists this folder
+        const parent = fs[parentPath];
+        if (parent) {
+            const existsInParent = parent.items.some((i) => i.name === name);
+            if (!existsInParent) {
+                const now = new Date()
+                    .toISOString()
+                    .slice(0, 19)
+                    .replace("T", " ");
+                parent.items.push({
+                    name,
+                    type: "folder",
+                    size: "—",
+                    modified: now,
+                });
+            }
+        }
+
+        if (!fileSystem) this.saveFileSystem(fs);
+        return fs[path];
+    }
+
+    // Generate unique name for any item (files or folders)
+    generateUniqueName(parentPath, baseName) {
+        const fileSystem = this.getFileSystem();
+        return this.generateUniqueNameInFs(fileSystem, parentPath, baseName);
+    }
+
+    // In-memory variant to avoid repeated localStorage reads during batch operations
+    generateUniqueNameInFs(fileSystem, parentPath, baseName) {
+        const parentItems = fileSystem[parentPath]?.items || [];
         let counter = 1;
         let uniqueName = baseName;
-
         while (parentItems.some((item) => item.name === uniqueName)) {
             uniqueName = `${baseName} (${counter})`;
             counter++;
         }
-
         return uniqueName;
+    }
+
+    // Generate unique name for folder
+    generateUniqueFolderName(parentPath, baseName) {
+        return this.generateUniqueName(parentPath, baseName);
     }
 
     // Create new folder
@@ -340,10 +488,7 @@ export class FileSystemStorage {
             parentPath,
             folderName
         );
-        const newPath =
-            parentPath === "Home"
-                ? `Home/${uniqueName}`
-                : `${parentPath}/${uniqueName}`;
+        const newPath = this.constructPath(parentPath, uniqueName);
 
         // Create new folder
         const newFolder = {
@@ -441,15 +586,17 @@ export class FileSystemStorage {
     // Create new file
     createFile(parentPath, fileName, fileType = null) {
         const fileSystem = this.getFileSystem();
+        // Ensure parent directory exists (handles premade/nested)
+        const parentDir = this.ensureDirectoryExists(parentPath, fileSystem);
 
         // Determine file type from extension if not provided
         const actualFileType = fileType || this.getFileType(fileName);
         const uniqueName = this.generateUniqueFileName(parentPath, fileName);
 
         // Add to parent directory
-        if (fileSystem[parentPath]) {
+        if (parentDir) {
             const now = new Date().toISOString().slice(0, 19).replace("T", " ");
-            fileSystem[parentPath].items.push({
+            parentDir.items.push({
                 name: uniqueName,
                 type: actualFileType,
                 size: "0 KB",
@@ -466,43 +613,216 @@ export class FileSystemStorage {
         };
     }
 
-    // Delete item
+    // Delete item (recursively for folders)
     deleteItem(parentPath, itemName) {
         const fileSystem = this.getFileSystem();
 
-        if (fileSystem[parentPath]) {
-            fileSystem[parentPath].items = fileSystem[parentPath].items.filter(
-                (item) => item.name !== itemName
-            );
-            this.saveFileSystem(fileSystem);
+        if (!fileSystem[parentPath]) return;
+
+        const item = fileSystem[parentPath].items.find(
+            (it) => it.name === itemName
+        );
+        if (!item) return;
+
+        // If folder: recursively delete its subtree and remove folder node
+        if (item.type === "folder") {
+            const folderPath = this.constructPath(parentPath, itemName);
+            if (fileSystem[folderPath] && fileSystem[folderPath].items) {
+                for (const subItem of [...fileSystem[folderPath].items]) {
+                    this.deleteItem(folderPath, subItem.name);
+                }
+            }
+            delete fileSystem[folderPath];
         }
+
+        // Remove entry from parent directory
+        fileSystem[parentPath].items = fileSystem[parentPath].items.filter(
+            (it) => it.name !== itemName
+        );
+
+        this.saveFileSystem(fileSystem);
     }
 
-    // Move item (for cut operation)
+    // Copy item with all contents (recursive for folders) — batched single save
+    copyItem(fromPath, toPath, itemName) {
+        const fileSystem = this.getFileSystem();
+        const ok = this.copyItemInternal(
+            fileSystem,
+            fromPath,
+            toPath,
+            itemName
+        );
+        if (ok) this.saveFileSystem(fileSystem);
+        return ok;
+    }
+
+    copyItemInternal(fileSystem, fromPath, toPath, itemName) {
+        // Ensure both source and destination directory nodes exist (default dirs too)
+        this.ensureDirectoryExists(fromPath, fileSystem);
+        this.ensureDirectoryExists(toPath, fileSystem);
+        const sourceDir = fileSystem[fromPath];
+        if (!sourceDir) return false;
+        const item = sourceDir.items.find((it) => it.name === itemName);
+        if (!item) return false;
+
+        // Prevent copying a folder into itself or a descendant
+        if (item.type === "folder") {
+            const sourceFolderPath = this.constructPath(fromPath, itemName);
+            if (
+                toPath === sourceFolderPath ||
+                toPath.startsWith(sourceFolderPath + "/")
+            ) {
+                return false;
+            }
+        }
+
+        const uniqueName = this.generateUniqueNameInFs(
+            fileSystem,
+            toPath,
+            itemName
+        );
+        const copiedItem = {
+            ...item,
+            name: uniqueName,
+            modified: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
+
+        if (item.type === "folder") {
+            const sourceFolderPath = this.constructPath(fromPath, itemName);
+            const destFolderPath = this.constructPath(toPath, uniqueName);
+
+            this.ensureDirectoryExists(destFolderPath, fileSystem);
+
+            const sourceFolder = fileSystem[sourceFolderPath];
+            if (sourceFolder && Array.isArray(sourceFolder.items)) {
+                const children = [...sourceFolder.items];
+                for (const subItem of children) {
+                    this.copyItemInternal(
+                        fileSystem,
+                        sourceFolderPath,
+                        destFolderPath,
+                        subItem.name
+                    );
+                }
+            }
+        }
+
+        const destDir = this.ensureDirectoryExists(toPath, fileSystem);
+        if (destDir && !destDir.items.some((i) => i.name === copiedItem.name)) {
+            destDir.items.push(copiedItem);
+        }
+
+        return true;
+    }
+
+    // Move item (for cut operation) - supports folders recursively
     moveItem(fromPath, toPath, itemName) {
         const fileSystem = this.getFileSystem();
 
-        // Find the item in source directory
+        // Ensure dirs exist and find the item in source directory
+        this.ensureDirectoryExists(fromPath, fileSystem);
+        this.ensureDirectoryExists(toPath, fileSystem);
         const sourceDir = fileSystem[fromPath];
         if (!sourceDir) return false;
 
         const item = sourceDir.items.find((item) => item.name === itemName);
         if (!item) return false;
 
+        // If it's a folder, update its subtree keys recursively
+        if (item.type === "folder") {
+            const oldFolderPath = this.constructPath(fromPath, itemName);
+            const newFolderPath = this.constructPath(toPath, itemName);
+
+            // Prevent moving into itself/descendant
+            if (
+                newFolderPath === oldFolderPath ||
+                newFolderPath.startsWith(oldFolderPath + "/")
+            ) {
+                return false;
+            }
+
+            const renameSubtree = (oldBase, newBase) => {
+                const keys = Object.keys(fileSystem).filter(
+                    (k) => k === oldBase || k.startsWith(`${oldBase}/`)
+                );
+                // Sort longest-first to avoid intermediate overwrites
+                keys.sort((a, b) => b.length - a.length);
+                for (const key of keys) {
+                    const newKey = key.replace(oldBase, newBase);
+                    const node = fileSystem[key];
+                    fileSystem[newKey] = {
+                        ...node,
+                        path: node.path.replace(
+                            oldBase
+                                .replace(/^Home\//, "Home / ")
+                                .replaceAll("/", " / "),
+                            newBase
+                                .replace(/^Home\//, "Home / ")
+                                .replaceAll("/", " / ")
+                        ),
+                    };
+                    if (newKey !== key) delete fileSystem[key];
+                }
+            };
+
+            if (fileSystem[oldFolderPath]) {
+                renameSubtree(oldFolderPath, newFolderPath);
+            } else {
+                // If folder node not present yet, create an empty structure
+                fileSystem[newFolderPath] = {
+                    name: itemName,
+                    path: newFolderPath,
+                    items: [],
+                };
+            }
+        }
+
         // Remove from source directory
         sourceDir.items = sourceDir.items.filter(
             (item) => item.name !== itemName
         );
 
-        // Add to destination directory
-        const destDir = fileSystem[toPath];
+        // Add to destination directory (ensure unique name when moving within same parent)
+        const destDir = this.ensureDirectoryExists(toPath, fileSystem);
         if (destDir) {
+            const finalName = this.generateUniqueName(toPath, item.name);
+            if (finalName !== item.name) {
+                // If name collided, update folder subtree names too
+                if (item.type === "folder") {
+                    const currentBase = this.constructPath(toPath, item.name);
+                    const renamedBase = this.constructPath(toPath, finalName);
+                    const keys = Object.keys(fileSystem).filter(
+                        (k) =>
+                            k === currentBase || k.startsWith(`${currentBase}/`)
+                    );
+                    keys.sort((a, b) => b.length - a.length);
+                    for (const key of keys) {
+                        const newKey = key.replace(currentBase, renamedBase);
+                        const node = fileSystem[key];
+                        fileSystem[newKey] = {
+                            ...node,
+                            path: node.path.replace(
+                                currentBase
+                                    .replace(/^Home\//, "Home / ")
+                                    .replaceAll("/", " / "),
+                                renamedBase
+                                    .replace(/^Home\//, "Home / ")
+                                    .replaceAll("/", " / ")
+                            ),
+                        };
+                        if (newKey !== key) delete fileSystem[key];
+                    }
+                }
+                item.name = finalName;
+            }
             destDir.items.push(item);
         }
 
         this.saveFileSystem(fileSystem);
         return true;
     }
+
+    // Trash functionality removed (permanent deletions only)
 
     // Rename item
     renameItem(parentPath, oldName, newName) {
@@ -556,6 +876,12 @@ export class FileSystemStorage {
     clearAll() {
         localStorage.removeItem(STORAGE_KEYS.FILE_SYSTEM);
         localStorage.removeItem(STORAGE_KEYS.NAVIGATION_HISTORY);
+        this.initializeStorage();
+    }
+
+    // Force reload of default file system (useful for testing)
+    reloadDefaultFileSystem() {
+        localStorage.removeItem(STORAGE_KEYS.FILE_SYSTEM);
         this.initializeStorage();
     }
 }
