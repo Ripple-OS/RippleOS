@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faStar as faStarRegular,
+    faStar as faStarSolid,
     faFolder,
     faFileArchive,
     faFilePdf,
@@ -14,6 +14,9 @@ import {
     faMusic,
     faVideo,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+    faStar as faStarRegular,
+} from "@fortawesome/free-regular-svg-icons";
 
 export default function FileExplorerItem({
     item,
@@ -24,6 +27,8 @@ export default function FileExplorerItem({
     viewMode = "list",
     onItemDragStart,
     onItemDrop,
+    isStarred = false,
+    onStarClick,
 }) {
     const getFileIcon = (type) => {
         switch (type) {
@@ -103,6 +108,13 @@ export default function FileExplorerItem({
             onItemDrop(event, item, index);
     };
 
+    const handleStarClick = (event) => {
+        event.stopPropagation(); // Prevent item selection when clicking star
+        if (onStarClick) {
+            onStarClick(item, index);
+        }
+    };
+
     if (viewMode === "list") {
         return (
             <div
@@ -127,8 +139,10 @@ export default function FileExplorerItem({
                 <div className="file-modified">{item.modified}</div>
                 <div className="file-actions">
                     <FontAwesomeIcon
-                        icon={faStarRegular}
-                        className="star-icon"
+                        icon={isStarred ? faStarSolid : faStarRegular}
+                        className={`star-icon ${isStarred ? 'starred' : ''}`}
+                        onClick={handleStarClick}
+                        title={isStarred ? 'Remove from starred' : 'Add to starred'}
                     />
                 </div>
             </div>
@@ -160,7 +174,12 @@ export default function FileExplorerItem({
                 <span className="grid-item-modified">{item.modified}</span>
             </div>
             <div className="grid-item-actions">
-                <FontAwesomeIcon icon={faStarRegular} className="star-icon" />
+                <FontAwesomeIcon 
+                    icon={isStarred ? faStarSolid : faStarRegular} 
+                    className={`star-icon ${isStarred ? 'starred' : ''}`}
+                    onClick={handleStarClick}
+                    title={isStarred ? 'Remove from starred' : 'Add to starred'}
+                />
             </div>
         </div>
     );

@@ -9,11 +9,16 @@ import FileExplorerInputPopup from "./FileExplorerInputPopup";
 import FileExplorerContextMenu from "./FileExplorerContextMenu";
 import FileExplorerDeletePopup from "./FileExplorerDeletePopup";
 import FileExplorerRenamePopup from "./FileExplorerRenamePopup";
+import { fileSystemStorage } from "./fileSystemStorage";
 import {
     NavigationHistory,
-    navigateToDirectory as navigateToDirectoryHelper,
-} from "./fileSystemData";
-import { fileSystemStorage } from "./fileSystemStorage";
+    navigationUtils,
+    selectionUtils,
+    clipboardUtils,
+    dragDropUtils,
+    fileSystemUtils,
+    starringUtils,
+} from "../../../../../functions/fileExplorer";
 
 export default function FileExplorer({ onClose }) {
     const [currentView, setCurrentView] = useState("list");
@@ -31,391 +36,274 @@ export default function FileExplorer({ onClose }) {
         x: 0,
         y: 0,
     });
-    const [clipboard, setClipboard] = useState({
-        items: [],
-        action: null,
-        sourcePath: null,
-    }); // 'copy' or 'cut'
+    const [clipboard, setClipboard] = useState(clipboardUtils.createInitialClipboard());
     const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
     const [deleteItems, setDeleteItems] = useState([]);
     const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
     const [renameItem, setRenameItem] = useState(null);
+    // eslint-disable-next-line no-unused-vars
+    const [starredItemsChanged, setStarredItemsChanged] = useState(0); // Force re-render when starred items change
 
     const navigationHistory = useRef(new NavigationHistory());
     const selectionTimeoutRef = useRef(null);
+    const dragDataRef = useRef(null);
 
     // Initialize with Home directory
     useEffect(() => {
-        navigateToDirectory("Home");
+        navigationUtils.navigateToDirectory(
+            "Home",
+            navigationHistory.current,
+            fileSystemStorage,
+            setCurrentDirectory,
+            setCurrentPath,
+            setFileItems,
+            setSelectedItems,
+            setLastSelectedIndex
+        );
     }, []);
 
-    const navigateToDirectory = (path) => {
-        const directoryData = fileSystemStorage.getDirectoryContents(path);
-        setCurrentDirectory(path);
-        setCurrentPath(directoryData.path);
-        setFileItems(directoryData.items);
-        navigationHistory.current.push(path);
-        // Clear selection when navigating to new directory
-        setSelectedItems(new Set());
-        setLastSelectedIndex(-1);
-    };
-
-    const handleSidebarItemClick = (itemId) => {
-        setActiveSidebarItem(itemId);
-
-        // Map sidebar items to their correct paths
-        const pathMapping = {
-            Home: "Home",
-            Recent: "Recent",
-            Starred: "Starred",
-            Documents: "Home/Documents",
-            Downloads: "Home/Downloads",
-            Pictures: "Home/Pictures",
-            Music: "Home/Music",
-            Videos: "Home/Videos",
-        };
-
-        const correctPath = pathMapping[itemId] || itemId;
-        navigateToDirectory(correctPath);
-    };
-
-    const handleItemClick = (item, index, event) => {
-        // Clear any pending selection timeout
-        if (selectionTimeoutRef.current) {
-            clearTimeout(selectionTimeoutRef.current);
-        }
-
-        // Handle double click
-        if (event.detail === 2) {
-            if (item.type === "folder") {
-                const newPath = navigateToDirectoryHelper(
-                    currentDirectory,
-                    item.name
-                );
-                navigateToDirectory(newPath);
-            } else {
-                // Handle file double click (could open file, show preview, etc.)
-                console.log("File double-clicked:", item.name);
-            }
-            return;
-        }
-
-        // Handle single click for selection
-        handleItemSelection(item, index, event);
-    };
-
-    const handleItemSelection = (item, index, event) => {
-        const newSelectedItems = new Set(selectedItems);
-
-        if (event.shiftKey && lastSelectedIndex !== -1) {
-            // Shift + click for range selection
-            const start = Math.min(lastSelectedIndex, index);
-            const end = Math.max(lastSelectedIndex, index);
-            for (let i = start; i <= end; i++) {
-                newSelectedItems.add(i);
-            }
-        } else {
-            // Single click - select only this item
-            newSelectedItems.clear();
-            newSelectedItems.add(index);
-            setLastSelectedIndex(index);
-        }
-
-        setSelectedItems(newSelectedItems);
-    };
-
-    // Drag & Drop
-    const dragDataRef = useRef(null);
-
-    const handleItemDragStart = (event, item, index) => {
-        const itemsToMove =
-            selectedItems.size > 0 && selectedItems.has(index)
-                ? Array.from(selectedItems).map((i) => fileItems[i])
-                : [item];
-        dragDataRef.current = {
-            items: itemsToMove,
-            fromPath: currentDirectory,
-        };
-        event.dataTransfer.setData(
-            "text/plain",
-            JSON.stringify({ count: itemsToMove.length })
-        );
-        event.dataTransfer.effectAllowed = "move";
-    };
-
-    const performMoveItems = (toPath) => {
-        if (!dragDataRef.current) return;
-        const { items, fromPath } = dragDataRef.current;
-        // Skip no-op
-        if (toPath === fromPath) return;
-        items.forEach((it) => {
-            fileSystemStorage.moveItem(fromPath, toPath, it.name);
-        });
-        // Refresh
-        const directoryData =
-            fileSystemStorage.getDirectoryContents(currentDirectory);
-        setFileItems(directoryData.items);
-        dragDataRef.current = null;
-    };
-
-    const handleItemDrop = (event, targetItem) => {
-        event.preventDefault();
-        if (targetItem.type !== "folder") return;
-        const destPath = navigateToDirectoryHelper(
-            currentDirectory,
-            targetItem.name
-        );
-        performMoveItems(destPath);
-    };
-
-    const handleContentDrop = (event) => {
-        event.preventDefault();
-        // Drop into current directory
-        performMoveItems(currentDirectory);
-    };
-
-    const handleContentDragOver = (event) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-    };
-
-    // Sidebar Drag & Drop
-    const handleSidebarDrop = (event, sidebarItemId) => {
-        event.preventDefault();
-        if (!dragDataRef.current) return;
-        
-        // Map sidebar items to their correct paths
-        const pathMapping = {
-            Home: "Home",
-            Recent: "Recent",
-            Starred: "Starred",
-            Documents: "Home/Documents",
-            Downloads: "Home/Downloads",
-            Pictures: "Home/Pictures",
-            Music: "Home/Music",
-            Videos: "Home/Videos",
-        };
-        
-        const targetPath = pathMapping[sidebarItemId];
-        if (targetPath) {
-            performMoveItems(targetPath);
-        }
-    };
-
-    const handleSidebarDragOver = (event, sidebarItemId) => {
-        // Only allow drop on directory-type sidebar items
-        const allowedItems = ["Home", "Documents", "Downloads", "Pictures", "Music", "Videos"];
-        if (allowedItems.includes(sidebarItemId)) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
-        }
-    };
-
+    // Navigation handlers
     const handleBack = () => {
-        const previousPath = navigationHistory.current.back();
-        if (previousPath) {
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(previousPath);
-            setCurrentDirectory(previousPath);
-            setCurrentPath(directoryData.path);
-            setFileItems(directoryData.items);
-        }
+        navigationUtils.handleBack(
+            navigationHistory.current,
+            fileSystemStorage,
+            setCurrentDirectory,
+            setCurrentPath,
+            setFileItems
+        );
     };
 
     const handleForward = () => {
-        const nextPath = navigationHistory.current.forward();
-        if (nextPath) {
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(nextPath);
-            setCurrentDirectory(nextPath);
-            setCurrentPath(directoryData.path);
-            setFileItems(directoryData.items);
-        }
+        navigationUtils.handleForward(
+            navigationHistory.current,
+            fileSystemStorage,
+            setCurrentDirectory,
+            setCurrentPath,
+            setFileItems
+        );
     };
 
-    // Handle click outside to clear selection
+    const handleSidebarItemClick = (itemId) => {
+        navigationUtils.handleSidebarItemClick(
+            itemId,
+            setActiveSidebarItem,
+            navigationUtils.navigateToDirectory,
+            navigationHistory.current,
+            fileSystemStorage,
+            setCurrentDirectory,
+            setCurrentPath,
+            setFileItems,
+            setSelectedItems,
+            setLastSelectedIndex
+        );
+    };
+
+    // Selection handlers
+    const handleItemClick = (item, index, event) => {
+        selectionUtils.handleItemClick(
+            item,
+            index,
+            event,
+            currentDirectory,
+            selectedItems,
+            lastSelectedIndex,
+            setSelectedItems,
+            setLastSelectedIndex,
+            (path) => navigationUtils.navigateToDirectory(
+                path,
+                navigationHistory.current,
+                fileSystemStorage,
+                setCurrentDirectory,
+                setCurrentPath,
+                setFileItems,
+                setSelectedItems,
+                setLastSelectedIndex
+            ),
+            selectionTimeoutRef
+        );
+    };
+
     const handleContentPaneClick = (event) => {
-        if (event.target.closest(".file-row, .grid-item")) {
-            return; // Don't clear if clicking on an item
-        }
-        setSelectedItems(new Set());
-        setLastSelectedIndex(-1);
+        selectionUtils.handleContentPaneClick(event, setSelectedItems, setLastSelectedIndex);
     };
 
-    // Create new folder
-    const handleNewFolder = () => {
-        setInputPopupType("folder");
-        setInputPopupTitle("Create New Folder");
-        setIsInputPopupOpen(true);
-    };
-
-    // Create new file
-    const handleNewFile = () => {
-        setInputPopupType("file");
-        setInputPopupTitle("Create New File");
-        setIsInputPopupOpen(true);
-    };
-
-    // Handle popup submission
-    const handlePopupSubmit = (name) => {
-        try {
-            if (inputPopupType === "folder") {
-                fileSystemStorage.createFolder(currentDirectory, name);
-            } else {
-                fileSystemStorage.createFile(currentDirectory, name);
-            }
-            // Refresh current directory
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(currentDirectory);
-            setFileItems(directoryData.items);
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
-    // Clipboard functions
-    const handleCopy = () => {
-        const selectedItemsList = Array.from(selectedItems).map(
-            (index) => fileItems[index]
-        );
-        setClipboard({
-            items: selectedItemsList,
-            action: "copy",
-            sourcePath: currentDirectory,
-        });
-        setIsContextMenuOpen(false);
-    };
-
-    const handleCut = () => {
-        const selectedItemsList = Array.from(selectedItems).map(
-            (index) => fileItems[index]
-        );
-        setClipboard({
-            items: selectedItemsList,
-            action: "cut",
-            sourcePath: currentDirectory,
-        });
-        setIsContextMenuOpen(false);
-    };
-
-    const handlePaste = () => {
-        if (clipboard.items.length === 0) return;
-
-        try {
-            clipboard.items.forEach((item) => {
-                if (clipboard.action === "copy") {
-                    // Copy logic - use new copyItem method that preserves folder contents
-                    fileSystemStorage.copyItem(
-                        clipboard.sourcePath || currentDirectory,
-                        currentDirectory,
-                        item.name
-                    );
-                } else if (clipboard.action === "cut") {
-                    // Cut logic - move item
-                    if (
-                        clipboard.sourcePath &&
-                        clipboard.sourcePath !== currentDirectory
-                    ) {
-                        // Move the item from source to destination
-                        fileSystemStorage.moveItem(
-                            clipboard.sourcePath,
-                            currentDirectory,
-                            item.name
-                        );
-                    } else {
-                        // If same directory, treat cut->paste as no-op
-                    }
-                }
-            });
-
-            // Clear clipboard after paste
-            setClipboard({ items: [], action: null, sourcePath: null });
-
-            // Refresh current directory
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(currentDirectory);
-            setFileItems(directoryData.items);
-        } catch (error) {
-            alert(error.message);
-        }
-    };
-
-    // Context menu functions
     const handleContextMenu = (event, index = null) => {
-        event.preventDefault();
+        selectionUtils.handleContextMenu(
+            event,
+            index,
+            selectedItems,
+            setSelectedItems,
+            setLastSelectedIndex,
+            setContextMenuPosition,
+            setIsContextMenuOpen
+        );
+    };
 
-        if (index !== null) {
-            // Right-click on specific item
-            if (!selectedItems.has(index)) {
-                setSelectedItems(new Set([index]));
-                setLastSelectedIndex(index);
-            }
-        }
+    // Drag & Drop handlers
+    const handleItemDragStart = (event, item, index) => {
+        dragDropUtils.handleItemDragStart(
+            event,
+            item,
+            index,
+            selectedItems,
+            fileItems,
+            currentDirectory,
+            dragDataRef
+        );
+    };
 
-        setContextMenuPosition({ x: event.clientX, y: event.clientY });
-        setIsContextMenuOpen(true);
+    const handleItemDrop = (event, targetItem) => {
+        dragDropUtils.handleItemDrop(
+            event,
+            targetItem,
+            currentDirectory,
+            dragDataRef,
+            fileSystemStorage,
+            setFileItems
+        );
+    };
+
+    const handleContentDrop = (event) => {
+        dragDropUtils.handleContentDrop(
+            event,
+            currentDirectory,
+            dragDataRef,
+            fileSystemStorage,
+            setFileItems
+        );
+    };
+
+    const handleContentDragOver = (event) => {
+        dragDropUtils.handleContentDragOver(event);
+    };
+
+    const handleSidebarDrop = (event, sidebarItemId) => {
+        dragDropUtils.handleSidebarDrop(
+            event,
+            sidebarItemId,
+            dragDataRef,
+            currentDirectory,
+            fileSystemStorage,
+            setFileItems
+        );
+    };
+
+    const handleSidebarDragOver = (event, sidebarItemId) => {
+        dragDropUtils.handleSidebarDragOver(event, sidebarItemId);
+    };
+
+    // File system handlers
+    const handleNewFolder = () => {
+        fileSystemUtils.handleNewFolder(setInputPopupType, setInputPopupTitle, setIsInputPopupOpen);
+    };
+
+    const handleNewFile = () => {
+        fileSystemUtils.handleNewFile(setInputPopupType, setInputPopupTitle, setIsInputPopupOpen);
+    };
+
+    const handlePopupSubmit = (name) => {
+        fileSystemUtils.handlePopupSubmit(
+            name,
+            inputPopupType,
+            currentDirectory,
+            fileSystemStorage,
+            setFileItems
+        );
     };
 
     const handleDelete = () => {
-        const selectedItemsList = Array.from(selectedItems).map(
-            (index) => fileItems[index]
+        fileSystemUtils.handleDelete(
+            selectedItems,
+            fileItems,
+            setDeleteItems,
+            setIsDeletePopupOpen,
+            setIsContextMenuOpen
         );
-
-        setDeleteItems(selectedItemsList);
-        setIsDeletePopupOpen(true);
-        setIsContextMenuOpen(false);
     };
 
     const handleDeleteConfirm = () => {
-        try {
-            deleteItems.forEach((item) => {
-                // Permanent recursive deletion (Trash removed)
-                fileSystemStorage.deleteItem(currentDirectory, item.name);
-            });
-
-            // Refresh current directory
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(currentDirectory);
-            setFileItems(directoryData.items);
-
-            // Clear selection
-            setSelectedItems(new Set());
-            setLastSelectedIndex(-1);
-        } catch (error) {
-            alert(error.message);
-        }
-        setIsDeletePopupOpen(false);
-        setDeleteItems([]);
+        fileSystemUtils.handleDeleteConfirm(
+            deleteItems,
+            currentDirectory,
+            fileSystemStorage,
+            setFileItems,
+            setSelectedItems,
+            setLastSelectedIndex,
+            setIsDeletePopupOpen,
+            setDeleteItems
+        );
     };
 
     const handleDeleteCancel = () => {
-        setIsDeletePopupOpen(false);
-        setDeleteItems([]);
+        fileSystemUtils.handleDeleteCancel(setIsDeletePopupOpen, setDeleteItems);
     };
 
     const handleRename = () => {
-        const selectedIndex = Array.from(selectedItems)[0];
-        if (selectedIndex !== undefined) {
-            const item = fileItems[selectedIndex];
-            setRenameItem(item);
-            setIsRenamePopupOpen(true);
-        }
-        setIsContextMenuOpen(false);
+        fileSystemUtils.handleRename(
+            selectedItems,
+            fileItems,
+            setRenameItem,
+            setIsRenamePopupOpen,
+            setIsContextMenuOpen
+        );
     };
 
     const handleRenameConfirm = (newName) => {
-        try {
-            fileSystemStorage.renameItem(
-                currentDirectory,
-                renameItem.name,
-                newName
-            );
-            const directoryData =
-                fileSystemStorage.getDirectoryContents(currentDirectory);
-            setFileItems(directoryData.items);
-        } catch (error) {
-            alert(error.message);
-        }
+        fileSystemUtils.handleRenameConfirm(
+            newName,
+            renameItem,
+            currentDirectory,
+            fileSystemStorage,
+            setFileItems
+        );
+    };
+
+    // Clipboard handlers
+    const handleCopy = () => {
+        clipboardUtils.handleCopy(
+            selectedItems,
+            fileItems,
+            currentDirectory,
+            setClipboard,
+            setIsContextMenuOpen
+        );
+    };
+
+    const handleCut = () => {
+        clipboardUtils.handleCut(
+            selectedItems,
+            fileItems,
+            currentDirectory,
+            setClipboard,
+            setIsContextMenuOpen
+        );
+    };
+
+    const handlePaste = () => {
+        clipboardUtils.handlePaste(
+            clipboard,
+            currentDirectory,
+            fileSystemStorage,
+            setClipboard,
+            setFileItems
+        );
+    };
+
+    // Starring handlers
+    const handleStarClick = (item, index) => {
+        starringUtils.handleStarClick(
+            item,
+            index,
+            currentDirectory,
+            fileSystemStorage,
+            setStarredItemsChanged,
+            setFileItems
+        );
+    };
+
+    // Helper function to check if an item is starred
+    const isItemStarred = (item) => {
+        return starringUtils.isItemStarred(item, currentDirectory, fileSystemStorage);
     };
 
     return (
@@ -438,7 +326,7 @@ export default function FileExplorer({ onClose }) {
                     onNewFile={handleNewFile}
                     onCopy={handleCopy}
                     onPaste={handlePaste}
-                    canPaste={clipboard.items.length > 0}
+                    canPaste={clipboardUtils.canPaste(clipboard)}
                 />
 
                 {/* Main Content */}
@@ -506,6 +394,8 @@ export default function FileExplorer({ onClose }) {
                                             onItemDrop={(e) =>
                                                 handleItemDrop(e, item)
                                             }
+                                            isStarred={isItemStarred(item)}
+                                            onStarClick={handleStarClick}
                                         />
                                     ))}
                                 </div>
@@ -526,6 +416,8 @@ export default function FileExplorer({ onClose }) {
                                         onItemDrop={(e) =>
                                             handleItemDrop(e, item)
                                         }
+                                        isStarred={isItemStarred(item)}
+                                        onStarClick={handleStarClick}
                                     />
                                 ))}
                             </div>
@@ -553,7 +445,7 @@ export default function FileExplorer({ onClose }) {
                 onCut={handleCut}
                 onDelete={handleDelete}
                 onRename={handleRename}
-                canPaste={clipboard.items.length > 0}
+                canPaste={clipboardUtils.canPaste(clipboard)}
                 hasSelection={selectedItems.size > 0}
             />
 

@@ -152,6 +152,42 @@ export class FileSystemStorage {
         if (!localStorage.getItem(STORAGE_KEYS.FILE_SYSTEM)) {
             this.saveFileSystem(DEFAULT_FILE_SYSTEM);
         }
+        // Clean up old starred items localStorage if it exists
+        this.migrateOldStarredItems();
+    }
+
+    // Migrate old starred items from separate localStorage to file system
+    migrateOldStarredItems() {
+        const oldStarredKey = "rippleos_starred_items";
+        const oldStarredData = localStorage.getItem(oldStarredKey);
+        
+        if (oldStarredData) {
+            try {
+                const oldStarredItems = JSON.parse(oldStarredData);
+                const fileSystem = this.getFileSystem();
+                
+                // Migrate old starred items to new system
+                oldStarredItems.forEach(starredItem => {
+                    const parentDir = fileSystem[starredItem.originalPath];
+                    if (parentDir && parentDir.items) {
+                        const item = parentDir.items.find(item => item.name === starredItem.name);
+                        if (item) {
+                            item.starred = true;
+                            item.starredAt = starredItem.starredAt;
+                        }
+                    }
+                });
+                
+                this.saveFileSystem(fileSystem);
+                // Remove old localStorage key
+                localStorage.removeItem(oldStarredKey);
+                console.log('Migrated old starred items to new system');
+            } catch (error) {
+                console.error('Error migrating old starred items:', error);
+                // Still remove the old key even if migration failed
+                localStorage.removeItem(oldStarredKey);
+            }
+        }
     }
 
     // Get file system data from localStorage
@@ -183,6 +219,10 @@ export class FileSystemStorage {
     // Get directory contents
     getDirectoryContents(path) {
         const fileSystem = this.getFileSystem();
+        // Special handling for Starred directory
+        if (path === "Starred") {
+            return this.getStarredDirectoryContents(fileSystem);
+        }
         // Lazily create missing directory nodes for premade folders
         if (!fileSystem[path]) {
             this.ensureDirectoryExists(path, fileSystem);
@@ -680,6 +720,91 @@ export class FileSystemStorage {
     reloadDefaultFileSystem() {
         localStorage.removeItem(STORAGE_KEYS.FILE_SYSTEM);
         this.initializeStorage();
+    }
+
+    // STARRED ITEMS FUNCTIONALITY
+
+    // Get starred directory contents
+    getStarredDirectoryContents(fileSystem = null) {
+        const fs = fileSystem || this.getFileSystem();
+        const starredItems = [];
+
+        // Search through all directories for starred items
+        Object.keys(fs).forEach(dirPath => {
+            const dir = fs[dirPath];
+            if (dir && dir.items) {
+                dir.items.forEach(item => {
+                    if (item.starred) {
+                        starredItems.push({
+                            ...item,
+                            originalPath: dirPath,
+                            modified: item.starredAt || item.modified
+                        });
+                    }
+                });
+            }
+        });
+
+        return {
+            name: "Starred",
+            path: "Starred",
+            items: starredItems.sort((a, b) => new Date(b.modified) - new Date(a.modified)) // Sort by most recently starred
+        };
+    }
+
+    // Check if an item is starred
+    isItemStarred(parentPath, itemName) {
+        const fileSystem = this.getFileSystem();
+        const parentDir = fileSystem[parentPath];
+        if (!parentDir || !parentDir.items) return false;
+        
+        const item = parentDir.items.find(item => item.name === itemName);
+        return item ? !!item.starred : false;
+    }
+
+    // Star an item
+    starItem(parentPath, itemName) {
+        const fileSystem = this.getFileSystem();
+        const parentDir = fileSystem[parentPath];
+        if (!parentDir || !parentDir.items) return false;
+        
+        const item = parentDir.items.find(item => item.name === itemName);
+        if (!item) return false;
+        
+        if (item.starred) return false; // Already starred
+        
+        item.starred = true;
+        item.starredAt = new Date().toISOString().slice(0, 19).replace("T", " ");
+        
+        this.saveFileSystem(fileSystem);
+        return true;
+    }
+
+    // Unstar an item
+    unstarItem(parentPath, itemName) {
+        const fileSystem = this.getFileSystem();
+        const parentDir = fileSystem[parentPath];
+        if (!parentDir || !parentDir.items) return false;
+        
+        const item = parentDir.items.find(item => item.name === itemName);
+        if (!item) return false;
+        
+        if (!item.starred) return false; // Not starred
+        
+        delete item.starred;
+        delete item.starredAt;
+        
+        this.saveFileSystem(fileSystem);
+        return true;
+    }
+
+    // Toggle star status
+    toggleStarItem(parentPath, itemName) {
+        if (this.isItemStarred(parentPath, itemName)) {
+            return this.unstarItem(parentPath, itemName) ? 'unstarred' : 'error';
+        } else {
+            return this.starItem(parentPath, itemName) ? 'starred' : 'error';
+        }
     }
 }
 

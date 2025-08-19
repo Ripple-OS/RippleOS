@@ -174,49 +174,6 @@ export const fileSystemData = {
     },
 };
 
-// Navigation history management
-export class NavigationHistory {
-    constructor() {
-        this.history = [];
-        this.currentIndex = -1;
-    }
-
-    push(path) {
-        // Remove any forward history when navigating to a new path
-        this.history = this.history.slice(0, this.currentIndex + 1);
-        this.history.push(path);
-        this.currentIndex = this.history.length - 1;
-    }
-
-    back() {
-        if (this.canGoBack()) {
-            this.currentIndex--;
-            return this.history[this.currentIndex];
-        }
-        return null;
-    }
-
-    forward() {
-        if (this.canGoForward()) {
-            this.currentIndex++;
-            return this.history[this.currentIndex];
-        }
-        return null;
-    }
-
-    canGoBack() {
-        return this.currentIndex > 0;
-    }
-
-    canGoForward() {
-        return this.currentIndex < this.history.length - 1;
-    }
-
-    getCurrentPath() {
-        return this.history[this.currentIndex] || null;
-    }
-}
-
 // Helper function to get directory contents
 export function getDirectoryContents(path) {
     return (
@@ -226,24 +183,4 @@ export function getDirectoryContents(path) {
             items: [],
         }
     );
-}
-
-// Helper function to navigate to a directory
-export function navigateToDirectory(currentPath, targetName) {
-    if (currentPath === "Home") {
-        return `Home/${targetName}`;
-    }
-    return `${currentPath}/${targetName}`;
-}
-
-// Helper function to get parent directory
-export function getParentDirectory(path) {
-    if (path === "Home") {
-        return "Home";
-    }
-    const parts = path.split("/");
-    if (parts.length <= 2) {
-        return "Home";
-    }
-    return parts.slice(0, -1).join("/");
 }
