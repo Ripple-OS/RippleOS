@@ -58,139 +58,22 @@ const DEFAULT_FILE_SYSTEM = {
                 size: "—",
                 modified: "2025-01-14 09:15",
             },
-            {
-                name: "report.pdf",
-                type: "pdf",
-                size: "2.3 MB",
-                modified: "2025-01-10 08:30",
-            },
-            {
-                name: "presentation.pptx",
-                type: "archive",
-                size: "5.7 MB",
-                modified: "2025-01-09 15:20",
-            },
         ],
     },
     "Home/Documents/Work": {
         name: "Work",
         path: "Home / Documents / Work",
-        items: [
-            {
-                name: "project1.pdf",
-                type: "pdf",
-                size: "1.2 MB",
-                modified: "2025-01-15 14:30",
-            },
-            {
-                name: "meeting-notes.txt",
-                type: "text",
-                size: "0.1 MB",
-                modified: "2025-01-14 09:15",
-            },
-        ],
+        items: [],
     },
     "Home/Documents/Personal": {
         name: "Personal",
         path: "Home / Documents / Personal",
-        items: [
-            {
-                name: "resume.pdf",
-                type: "pdf",
-                size: "0.8 MB",
-                modified: "2025-01-13 16:45",
-            },
-            {
-                name: "diary.txt",
-                type: "text",
-                size: "0.2 MB",
-                modified: "2025-01-12 11:20",
-            },
-        ],
+        items: [],
     },
     "Home/Downloads": {
         name: "Downloads",
         path: "Home / Downloads",
-        items: [
-            {
-                name: "postman-linux-x64",
-                type: "folder",
-                size: "—",
-                modified: "2025-01-15 14:30",
-            },
-            {
-                name: "balenaEtcher-linux-x64-2.1.4",
-                type: "folder",
-                size: "—",
-                modified: "2025-01-14 09:15",
-            },
-            {
-                name: "grub2-themes-2025-07-23",
-                type: "folder",
-                size: "—",
-                modified: "2025-01-13 16:45",
-            },
-            {
-                name: "SKyCore plugin versions",
-                type: "folder",
-                size: "—",
-                modified: "2025-01-12 11:20",
-            },
-            {
-                name: "postman-linux-x64.tar.gz",
-                type: "archive",
-                size: "156 MB",
-                modified: "2025-01-15 14:25",
-            },
-            {
-                name: "grub2-themes-2025-07-23.zip",
-                type: "archive",
-                size: "89 MB",
-                modified: "2025-01-13 16:40",
-            },
-            {
-                name: "balenaEtcher-linux-x64-2.1.4.zip",
-                type: "archive",
-                size: "234 MB",
-                modified: "2025-01-14 09:10",
-            },
-            {
-                name: "faktura_2025_08_001.pdf",
-                type: "pdf",
-                size: "2.3 MB",
-                modified: "2025-01-10 08:30",
-            },
-            {
-                name: "Win10_22H2_Polish_x64vl.iso",
-                type: "iso",
-                size: "4.2 GB",
-                modified: "2025-01-08 15:20",
-            },
-            {
-                name: "nautilus-dropbox-2025-05.20-1.fc42.x86_64.rpm",
-                type: "rpm",
-                size: "1.8 MB",
-                modified: "2025-01-05 12:45",
-            },
-        ],
-    },
-    "Home/Downloads/postman-linux-x64": {
-        name: "postman-linux-x64",
-        path: "Home / Downloads / postman-linux-x64",
-        items: [
-            {
-                name: "postman",
-                type: "archive",
-                size: "120 MB",
-                modified: "2025-01-15 14:25",
-            },
-            {
-                name: "README.md",
-                type: "text",
-                size: "0.1 MB",
-                modified: "2025-01-15 14:25",
-            },
-        ],
+        items: [],
     },
     "Home/Pictures": {
         name: "Pictures",
@@ -207,54 +90,6 @@ const DEFAULT_FILE_SYSTEM = {
                 type: "folder",
                 size: "—",
                 modified: "2025-01-14 09:15",
-            },
-            {
-                name: "screenshot.png",
-                type: "archive",
-                size: "1.2 MB",
-                modified: "2025-01-10 08:30",
-            },
-            {
-                name: "photo.jpg",
-                type: "archive",
-                size: "3.4 MB",
-                modified: "2025-01-09 15:20",
-            },
-        ],
-    },
-    "Home/Pictures/Screenshots": {
-        name: "Screenshots",
-        path: "Home / Pictures / Screenshots",
-        items: [
-            {
-                name: "desktop-2025-01-15.png",
-                type: "image",
-                size: "0.8 MB",
-                modified: "2025-01-15 14:30",
-            },
-            {
-                name: "error-log.png",
-                type: "image",
-                size: "0.4 MB",
-                modified: "2025-01-14 09:15",
-            },
-        ],
-    },
-    "Home/Pictures/Vacation": {
-        name: "Vacation",
-        path: "Home / Pictures / Vacation",
-        items: [
-            {
-                name: "beach-sunset.jpg",
-                type: "image",
-                size: "2.1 MB",
-                modified: "2025-01-13 16:45",
-            },
-            {
-                name: "mountain-view.jpg",
-                type: "image",
-                size: "1.8 MB",
-                modified: "2025-01-12 11:20",
             },
         ],
     },
@@ -274,12 +109,6 @@ const DEFAULT_FILE_SYSTEM = {
                 size: "—",
                 modified: "2025-01-14 09:15",
             },
-            {
-                name: "song.mp3",
-                type: "archive",
-                size: "4.1 MB",
-                modified: "2025-01-10 08:30",
-            },
         ],
     },
     "Home/Videos": {
@@ -298,49 +127,17 @@ const DEFAULT_FILE_SYSTEM = {
                 size: "—",
                 modified: "2025-01-14 09:15",
             },
-            {
-                name: "video.mp4",
-                type: "archive",
-                size: "45.2 MB",
-                modified: "2025-01-10 08:30",
-            },
         ],
     },
     Recent: {
         name: "Recent",
         path: "Recent",
-        items: [
-            {
-                name: "recent_file.pdf",
-                type: "pdf",
-                size: "1.1 MB",
-                modified: "2025-01-15 16:30",
-            },
-            {
-                name: "recent_image.jpg",
-                type: "archive",
-                size: "2.3 MB",
-                modified: "2025-01-15 15:45",
-            },
-        ],
+        items: [],
     },
     Starred: {
         name: "Starred",
         path: "Starred",
-        items: [
-            {
-                name: "important_doc.pdf",
-                type: "pdf",
-                size: "3.2 MB",
-                modified: "2025-01-14 10:30",
-            },
-            {
-                name: "favorite_photo.jpg",
-                type: "archive",
-                size: "1.8 MB",
-                modified: "2025-01-13 14:20",
-            },
-        ],
+        items: [],
     },
 };
 

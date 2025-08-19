@@ -6,8 +6,6 @@ import {
     faCut,
     faTrash,
     faEdit,
-    faDownload,
-    faUndo,
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function FileExplorerContextMenu({

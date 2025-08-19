@@ -17,7 +17,7 @@ export default function ScreenElements({ popups, setPopups }) {
         <div className="screen_elements" onClick={handleScreenClick}>
             <Clock />
             {popups.find((popup) => popup.name === "Display Apps")?.toggled && (
-                <DisplayApps />
+                <DisplayApps setPopups={setPopups} />
             )}
             {popups.find((popup) => popup.name === "Sound Control")
                 ?.toggled && <UtilitySoundControl />}

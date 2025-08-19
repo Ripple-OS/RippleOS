@@ -179,6 +179,38 @@ export default function FileExplorer({ onClose }) {
         event.dataTransfer.dropEffect = "move";
     };
 
+    // Sidebar Drag & Drop
+    const handleSidebarDrop = (event, sidebarItemId) => {
+        event.preventDefault();
+        if (!dragDataRef.current) return;
+        
+        // Map sidebar items to their correct paths
+        const pathMapping = {
+            Home: "Home",
+            Recent: "Recent",
+            Starred: "Starred",
+            Documents: "Home/Documents",
+            Downloads: "Home/Downloads",
+            Pictures: "Home/Pictures",
+            Music: "Home/Music",
+            Videos: "Home/Videos",
+        };
+        
+        const targetPath = pathMapping[sidebarItemId];
+        if (targetPath) {
+            performMoveItems(targetPath);
+        }
+    };
+
+    const handleSidebarDragOver = (event, sidebarItemId) => {
+        // Only allow drop on directory-type sidebar items
+        const allowedItems = ["Home", "Documents", "Downloads", "Pictures", "Music", "Videos"];
+        if (allowedItems.includes(sidebarItemId)) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        }
+    };
+
     const handleBack = () => {
         const previousPath = navigationHistory.current.back();
         if (previousPath) {
@@ -386,11 +418,6 @@ export default function FileExplorer({ onClose }) {
         }
     };
 
-    // Restore removed with Trash removal
-    const handleRestore = () => {
-        setIsContextMenuOpen(false);
-    };
-
     return (
         <Window
             title="File Explorer"
@@ -420,6 +447,8 @@ export default function FileExplorer({ onClose }) {
                     <FileExplorerSidebar
                         activeSidebarItem={activeSidebarItem}
                         onSidebarItemClick={handleSidebarItemClick}
+                        onSidebarDrop={handleSidebarDrop}
+                        onSidebarDragOver={handleSidebarDragOver}
                     />
 
                     {/* Content Pane */}
