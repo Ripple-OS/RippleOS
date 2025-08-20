@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import FileExplorer from "./FileExplorer/FileExplorer";
 import TextEditor from "./TextEditor/TextEditor";
+import Calculator from "./Calculator/Calculator";
 
 export default function ScreenApps() {
     const [openedApps, setOpenedApps] = useState({});
@@ -144,7 +145,13 @@ export default function ScreenApps() {
             case "Calendar":
                 return <div>Calendar App (Coming Soon)</div>;
             case "Calculator":
-                return <div>Calculator App (Coming Soon)</div>;
+                return (
+                    <Calculator
+                        onClose={() => handleCloseApp(appName)}
+                        onMinimize={() => handleMinimizeApp(appName)}
+                        isMinimized={isMinimized}
+                    />
+                );
             case "Gallery":
                 return <div>Gallery App (Coming Soon)</div>;
             default:

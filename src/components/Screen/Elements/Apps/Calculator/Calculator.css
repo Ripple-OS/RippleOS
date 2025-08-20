@@ -1,0 +1,289 @@
+/* Calculator App Styles */
+.calculator-app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 16px;
+    gap: 12px;
+}
+
+/* Display Area */
+.calc-display {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-bottom: 8px;
+}
+
+.calc-display-main {
+    font-size: 28px;
+    font-weight: 300;
+    color: #212529;
+    text-align: right;
+    word-break: break-all;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+
+.calc-display-operation {
+    font-size: 14px;
+    color: #6c757d;
+    text-align: right;
+    margin-bottom: 8px;
+}
+
+/* History Section */
+.calc-history {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.calc-history-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calc-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calc-history-item {
+    font-size: 11px;
+    color: #495057;
+    text-align: right;
+    padding: 2px 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.calc-history-item:last-child {
+    border-bottom: none;
+}
+
+/* Button Grid */
+.calc-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 8px;
+    flex: 1;
+}
+
+/* Button Styles */
+.calc-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: inherit;
+}
+
+.calc-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.calc-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Number buttons */
+.calc-btn.number {
+    background: #ffffff;
+    color: #212529;
+    border: 1px solid #e9ecef;
+}
+
+.calc-btn.number:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+/* Operator buttons */
+.calc-btn.operator {
+    background: #007bff;
+    color: white;
+    border: 1px solid #0056b3;
+}
+
+.calc-btn.operator:hover {
+    background: #0056b3;
+    border-color: #004085;
+}
+
+/* Equals button */
+.calc-btn.equals {
+    background: #28a745;
+    color: white;
+    border: 1px solid #1e7e34;
+}
+
+.calc-btn.equals:hover {
+    background: #1e7e34;
+    border-color: #155724;
+}
+
+/* Secondary function buttons (AC, CE, %, ±) */
+.calc-btn.secondary {
+    background: #6c757d;
+    color: white;
+    border: 1px solid #545b62;
+}
+
+.calc-btn.secondary:hover {
+    background: #545b62;
+    border-color: #3d4043;
+}
+
+/* Backspace button - spans full width at bottom */
+.calc-btn.backspace {
+    grid-column: 1 / -1;
+    background: #dc3545;
+    color: white;
+    border: 1px solid #b02a37;
+}
+
+.calc-btn.backspace:hover {
+    background: #b02a37;
+    border-color: #8d1e26;
+}
+
+/* Disabled state */
+.calc-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Focus styles for accessibility */
+.calc-btn:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.calc-btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Status Bar */
+.calc-statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f1f3f4;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.calc-status-left,
+.calc-status-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calc-status-item {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+    .calculator-app {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .calc-display {
+        padding: 12px;
+        min-height: 60px;
+    }
+    
+    .calc-display-main {
+        font-size: 24px;
+    }
+    
+    .calc-btn {
+        padding: 10px;
+        font-size: 14px;
+        min-height: 36px;
+    }
+    
+    .calc-buttons {
+        gap: 6px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .calculator-app {
+        background: #2d3748;
+    }
+    
+    .calc-display,
+    .calc-history {
+        background: #1a202c;
+        border-color: #4a5568;
+    }
+    
+    .calc-display-main {
+        color: #f7fafc;
+    }
+    
+    .calc-display-operation,
+    .calc-history-title {
+        color: #a0aec0;
+    }
+    
+    .calc-history-item {
+        color: #e2e8f0;
+        border-color: #4a5568;
+    }
+    
+    .calc-btn.number {
+        background: #4a5568;
+        color: #f7fafc;
+        border-color: #718096;
+    }
+    
+    .calc-btn.number:hover {
+        background: #718096;
+        border-color: #a0aec0;
+    }
+    
+    .calc-statusbar {
+        background: #4a5568;
+        color: #a0aec0;
+    }
+}
