@@ -39,7 +39,18 @@ export default function Window({
     const windowRef = useRef(null);
 
     const handleMaximize = () => {
-        setIsMaximized(!isMaximized);
+        const newMaximizedState = !isMaximized;
+        setIsMaximized(newMaximizedState);
+        
+        // Dispatch event to notify other components about maximize state change
+        window.dispatchEvent(
+            new CustomEvent("window-maximize-changed", {
+                detail: { 
+                    windowTitle: title,
+                    isMaximized: newMaximizedState 
+                },
+            })
+        );
     };
 
     // Mouse event handlers for dragging

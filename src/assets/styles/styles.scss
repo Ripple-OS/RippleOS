@@ -55,6 +55,22 @@ main {
                 bottom: 0;
             }
         }
+        
+        @keyframes slide-to-bottom {
+            0% {
+                opacity: 1;
+                bottom: 0;
+            }
+
+            100% {
+                opacity: 0;
+                bottom: -72px;
+            }
+        }
+        
+        &.hidden {
+            animation: .3s ease-in-out slide-to-bottom forwards;
+        }
 
         // DOCK CUSTOMIZATION
         .dock {
