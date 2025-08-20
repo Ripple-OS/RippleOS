@@ -2,6 +2,7 @@
 const STORAGE_KEYS = {
     FILE_SYSTEM: "rippleos_file_system",
     NAVIGATION_HISTORY: "rippleos_navigation_history",
+    FILE_CONTENTS: "rippleos_file_contents",
 };
 
 // Default file system structure
@@ -152,6 +153,12 @@ export class FileSystemStorage {
         if (!localStorage.getItem(STORAGE_KEYS.FILE_SYSTEM)) {
             this.saveFileSystem(DEFAULT_FILE_SYSTEM);
         }
+        if (!localStorage.getItem(STORAGE_KEYS.FILE_CONTENTS)) {
+            localStorage.setItem(
+                STORAGE_KEYS.FILE_CONTENTS,
+                JSON.stringify({})
+            );
+        }
         // Clean up old starred items localStorage if it exists
         this.migrateOldStarredItems();
     }
@@ -160,30 +167,32 @@ export class FileSystemStorage {
     migrateOldStarredItems() {
         const oldStarredKey = "rippleos_starred_items";
         const oldStarredData = localStorage.getItem(oldStarredKey);
-        
+
         if (oldStarredData) {
             try {
                 const oldStarredItems = JSON.parse(oldStarredData);
                 const fileSystem = this.getFileSystem();
-                
+
                 // Migrate old starred items to new system
-                oldStarredItems.forEach(starredItem => {
+                oldStarredItems.forEach((starredItem) => {
                     const parentDir = fileSystem[starredItem.originalPath];
                     if (parentDir && parentDir.items) {
-                        const item = parentDir.items.find(item => item.name === starredItem.name);
+                        const item = parentDir.items.find(
+                            (item) => item.name === starredItem.name
+                        );
                         if (item) {
                             item.starred = true;
                             item.starredAt = starredItem.starredAt;
                         }
                     }
                 });
-                
+
                 this.saveFileSystem(fileSystem);
                 // Remove old localStorage key
                 localStorage.removeItem(oldStarredKey);
-                console.log('Migrated old starred items to new system');
+                console.log("Migrated old starred items to new system");
             } catch (error) {
-                console.error('Error migrating old starred items:', error);
+                console.error("Error migrating old starred items:", error);
                 // Still remove the old key even if migration failed
                 localStorage.removeItem(oldStarredKey);
             }
@@ -214,6 +223,115 @@ export class FileSystemStorage {
         } catch (error) {
             console.error("Error saving file system to localStorage:", error);
         }
+    }
+
+    // Helpers for file contents persistence
+    getFileContentsMap() {
+        try {
+            const raw =
+                localStorage.getItem(STORAGE_KEYS.FILE_CONTENTS) || "{}";
+            return JSON.parse(raw);
+        } catch (e) {
+            return {};
+        }
+    }
+
+    saveFileContentsMap(map) {
+        try {
+            localStorage.setItem(
+                STORAGE_KEYS.FILE_CONTENTS,
+                JSON.stringify(map)
+            );
+        } catch (e) {
+            console.error("Error saving file contents:", e);
+        }
+    }
+
+    makeFileKey(parentPath, fileName) {
+        return `${parentPath}::${fileName}`;
+    }
+
+    readFileContent(parentPath, fileName) {
+        const map = this.getFileContentsMap();
+        return map[this.makeFileKey(parentPath, fileName)] || "";
+    }
+
+    writeFileContent(parentPath, fileName, content) {
+        const fileSystem = this.getFileSystem();
+        this.ensureDirectoryExists(parentPath, fileSystem);
+        const dir = fileSystem[parentPath];
+        if (!dir) return false;
+        const item = dir.items.find((i) => i.name === fileName);
+        if (!item) return false;
+
+        // Persist content
+        const map = this.getFileContentsMap();
+        map[this.makeFileKey(parentPath, fileName)] = content ?? "";
+        this.saveFileContentsMap(map);
+
+        // Update metadata: size and modified
+        const bytes = (content || "").length;
+        const kb = Math.max(1, Math.ceil(bytes / 1024));
+        item.size = `${kb} KB`;
+        item.modified = new Date().toISOString().slice(0, 19).replace("T", " ");
+        this.saveFileSystem(fileSystem);
+        return true;
+    }
+
+    deleteFileContent(parentPath, fileName) {
+        const map = this.getFileContentsMap();
+        const key = this.makeFileKey(parentPath, fileName);
+        if (key in map) {
+            delete map[key];
+            this.saveFileContentsMap(map);
+        }
+    }
+
+    moveFileContentKey(oldParent, oldName, newParent, newName) {
+        const map = this.getFileContentsMap();
+        const oldKey = this.makeFileKey(oldParent, oldName);
+        const newKey = this.makeFileKey(newParent, newName);
+        if (oldKey in map) {
+            map[newKey] = map[oldKey];
+            delete map[oldKey];
+            this.saveFileContentsMap(map);
+        }
+    }
+
+    copyFileContent(fromParent, name, toParent, newName) {
+        const map = this.getFileContentsMap();
+        const srcKey = this.makeFileKey(fromParent, name);
+        const destKey = this.makeFileKey(toParent, newName);
+        if (srcKey in map) {
+            map[destKey] = map[srcKey];
+            this.saveFileContentsMap(map);
+        }
+    }
+
+    updateContentsForPathRename(oldBase, newBase) {
+        const map = this.getFileContentsMap();
+        const updated = {};
+        let changed = false;
+        for (const [key, value] of Object.entries(map)) {
+            const sepIndex = key.lastIndexOf("::");
+            if (sepIndex === -1) {
+                updated[key] = value;
+                continue;
+            }
+            const parentPath = key.substring(0, sepIndex);
+            const fileName = key.substring(sepIndex + 2);
+            if (
+                parentPath === oldBase ||
+                parentPath.startsWith(oldBase + "/")
+            ) {
+                const newParent = parentPath.replace(oldBase, newBase);
+                updated[`${newParent}::${fileName}`] = value;
+                changed = true;
+            } else {
+                updated[key] = value;
+            }
+        }
+        if (changed) this.saveFileContentsMap(updated);
     }
 
     // Get directory contents
@@ -442,6 +560,14 @@ export class FileSystemStorage {
         }
 
         this.saveFileSystem(fileSystem);
+        // Initialize empty content for text files
+        try {
+            if (actualFileType === "text") {
+                const map = this.getFileContentsMap();
+                map[this.makeFileKey(parentPath, uniqueName)] = "";
+                this.saveFileContentsMap(map);
+            }
+        } catch (_) {}
         return {
             name: uniqueName,
             type: actualFileType,
@@ -470,6 +596,9 @@ export class FileSystemStorage {
                 }
             }
             delete fileSystem[folderPath];
+        } else {
+            // If file: remove its content
+            this.deleteFileContent(parentPath, itemName);
         }
 
         // Remove entry from parent directory
@@ -547,6 +676,11 @@ export class FileSystemStorage {
         const destDir = this.ensureDirectoryExists(toPath, fileSystem);
         if (destDir && !destDir.items.some((i) => i.name === copiedItem.name)) {
             destDir.items.push(copiedItem);
+        }
+
+        // Copy file contents if it's a file
+        if (item.type !== "folder") {
+            this.copyFileContent(fromPath, itemName, toPath, uniqueName);
         }
 
         return true;
@@ -649,10 +783,22 @@ export class FileSystemStorage {
                         };
                         if (newKey !== key) delete fileSystem[key];
                     }
+                    // Update content keys for subtree rename
+                    this.updateContentsForPathRename(currentBase, renamedBase);
                 }
                 item.name = finalName;
             }
             destDir.items.push(item);
+
+            // Move file contents key if it's a file
+            if (item.type !== "folder") {
+                this.moveFileContentKey(fromPath, itemName, toPath, item.name);
+            } else {
+                // For folders, update all descendant content keys from old path to new path
+                const oldFolderPath = this.constructPath(fromPath, itemName);
+                const newFolderPath = this.constructPath(toPath, item.name);
+                this.updateContentsForPathRename(oldFolderPath, newFolderPath);
+            }
         }
 
         this.saveFileSystem(fileSystem);
@@ -670,12 +816,23 @@ export class FileSystemStorage {
                 (item) => item.name === oldName
             );
             if (item) {
+                const previousName = item.name;
                 item.name = newName;
                 item.modified = new Date()
                     .toISOString()
                     .slice(0, 19)
                     .replace("T", " ");
                 this.saveFileSystem(fileSystem);
+
+                // Move content key if it's a file (not folder)
+                if (item.type !== "folder") {
+                    this.moveFileContentKey(
+                        parentPath,
+                        previousName,
+                        parentPath,
+                        newName
+                    );
+                }
             }
         }
     }
@@ -713,6 +870,7 @@ export class FileSystemStorage {
     clearAll() {
         localStorage.removeItem(STORAGE_KEYS.FILE_SYSTEM);
         localStorage.removeItem(STORAGE_KEYS.NAVIGATION_HISTORY);
+        localStorage.removeItem(STORAGE_KEYS.FILE_CONTENTS);
         this.initializeStorage();
     }
 
@@ -730,15 +888,15 @@ export class FileSystemStorage {
         const starredItems = [];
 
         // Search through all directories for starred items
-        Object.keys(fs).forEach(dirPath => {
+        Object.keys(fs).forEach((dirPath) => {
             const dir = fs[dirPath];
             if (dir && dir.items) {
-                dir.items.forEach(item => {
+                dir.items.forEach((item) => {
                     if (item.starred) {
                         starredItems.push({
                             ...item,
                             originalPath: dirPath,
-                            modified: item.starredAt || item.modified
+                            modified: item.starredAt || item.modified,
                         });
                     }
                 });
@@ -748,7 +906,9 @@ export class FileSystemStorage {
         return {
             name: "Starred",
             path: "Starred",
-            items: starredItems.sort((a, b) => new Date(b.modified) - new Date(a.modified)) // Sort by most recently starred
+            items: starredItems.sort(
+                (a, b) => new Date(b.modified) - new Date(a.modified)
+            ), // Sort by most recently starred
         };
     }
 
@@ -757,8 +917,8 @@ export class FileSystemStorage {
         const fileSystem = this.getFileSystem();
         const parentDir = fileSystem[parentPath];
         if (!parentDir || !parentDir.items) return false;
-        
-        const item = parentDir.items.find(item => item.name === itemName);
+
+        const item = parentDir.items.find((item) => item.name === itemName);
         return item ? !!item.starred : false;
     }
 
@@ -767,15 +927,18 @@ export class FileSystemStorage {
         const fileSystem = this.getFileSystem();
         const parentDir = fileSystem[parentPath];
         if (!parentDir || !parentDir.items) return false;
-        
-        const item = parentDir.items.find(item => item.name === itemName);
+
+        const item = parentDir.items.find((item) => item.name === itemName);
         if (!item) return false;
-        
+
         if (item.starred) return false; // Already starred
-        
+
         item.starred = true;
-        item.starredAt = new Date().toISOString().slice(0, 19).replace("T", " ");
-        
+        item.starredAt = new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace("T", " ");
+
         this.saveFileSystem(fileSystem);
         return true;
     }
@@ -785,15 +948,15 @@ export class FileSystemStorage {
         const fileSystem = this.getFileSystem();
         const parentDir = fileSystem[parentPath];
         if (!parentDir || !parentDir.items) return false;
-        
-        const item = parentDir.items.find(item => item.name === itemName);
+
+        const item = parentDir.items.find((item) => item.name === itemName);
         if (!item) return false;
-        
+
         if (!item.starred) return false; // Not starred
-        
+
         delete item.starred;
         delete item.starredAt;
-        
+
         this.saveFileSystem(fileSystem);
         return true;
     }
@@ -801,9 +964,11 @@ export class FileSystemStorage {
     // Toggle star status
     toggleStarItem(parentPath, itemName) {
         if (this.isItemStarred(parentPath, itemName)) {
-            return this.unstarItem(parentPath, itemName) ? 'unstarred' : 'error';
+            return this.unstarItem(parentPath, itemName)
+                ? "unstarred"
+                : "error";
         } else {
-            return this.starItem(parentPath, itemName) ? 'starred' : 'error';
+            return this.starItem(parentPath, itemName) ? "starred" : "error";
         }
     }
 }

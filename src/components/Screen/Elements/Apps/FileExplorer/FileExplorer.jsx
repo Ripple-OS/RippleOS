@@ -20,7 +20,12 @@ import {
     starringUtils,
 } from "../../../../../functions/fileExplorer";
 
-export default function FileExplorer({ onClose }) {
+export default function FileExplorer({
+    onClose,
+    isSaveMode = false,
+    onSaveConfirm = null,
+    saveFileName = "",
+}) {
     const [currentView, setCurrentView] = useState("list");
     const [activeSidebarItem, setActiveSidebarItem] = useState("Home");
     const [currentDirectory, setCurrentDirectory] = useState("Home");
@@ -36,11 +41,14 @@ export default function FileExplorer({ onClose }) {
         x: 0,
         y: 0,
     });
-    const [clipboard, setClipboard] = useState(clipboardUtils.createInitialClipboard());
+    const [clipboard, setClipboard] = useState(
+        clipboardUtils.createInitialClipboard()
+    );
     const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
     const [deleteItems, setDeleteItems] = useState([]);
     const [isRenamePopupOpen, setIsRenamePopupOpen] = useState(false);
     const [renameItem, setRenameItem] = useState(null);
+    const [saveFileNameInput, setSaveFileNameInput] = useState(saveFileName);
     // eslint-disable-next-line no-unused-vars
     const [starredItemsChanged, setStarredItemsChanged] = useState(0); // Force re-render when starred items change
 
@@ -61,6 +69,13 @@ export default function FileExplorer({ onClose }) {
             setLastSelectedIndex
         );
     }, []);
+
+    // Update save filename when prop changes
+    useEffect(() => {
+        if (isSaveMode && saveFileName) {
+            setSaveFileNameInput(saveFileName);
+        }
+    }, [isSaveMode, saveFileName]);
 
     // Navigation handlers
     const handleBack = () => {
@@ -84,6 +99,11 @@ export default function FileExplorer({ onClose }) {
     };
 
     const handleSidebarItemClick = (itemId) => {
+        // In save mode, only allow navigation to actual folders, not Recent/Starred
+        if (isSaveMode && (itemId === "Recent" || itemId === "Starred")) {
+            return;
+        }
+
         navigationUtils.handleSidebarItemClick(
             itemId,
             setActiveSidebarItem,
@@ -109,22 +129,27 @@ export default function FileExplorer({ onClose }) {
             lastSelectedIndex,
             setSelectedItems,
             setLastSelectedIndex,
-            (path) => navigationUtils.navigateToDirectory(
-                path,
-                navigationHistory.current,
-                fileSystemStorage,
-                setCurrentDirectory,
-                setCurrentPath,
-                setFileItems,
-                setSelectedItems,
-                setLastSelectedIndex
-            ),
+            (path) =>
+                navigationUtils.navigateToDirectory(
+                    path,
+                    navigationHistory.current,
+                    fileSystemStorage,
+                    setCurrentDirectory,
+                    setCurrentPath,
+                    setFileItems,
+                    setSelectedItems,
+                    setLastSelectedIndex
+                ),
             selectionTimeoutRef
         );
     };
 
     const handleContentPaneClick = (event) => {
-        selectionUtils.handleContentPaneClick(event, setSelectedItems, setLastSelectedIndex);
+        selectionUtils.handleContentPaneClick(
+            event,
+            setSelectedItems,
+            setLastSelectedIndex
+        );
     };
 
     const handleContextMenu = (event, index = null) => {
@@ -194,11 +219,19 @@ export default function FileExplorer({ onClose }) {
 
     // File system handlers
     const handleNewFolder = () => {
-        fileSystemUtils.handleNewFolder(setInputPopupType, setInputPopupTitle, setIsInputPopupOpen);
+        fileSystemUtils.handleNewFolder(
+            setInputPopupType,
+            setInputPopupTitle,
+            setIsInputPopupOpen
+        );
     };
 
     const handleNewFile = () => {
-        fileSystemUtils.handleNewFile(setInputPopupType, setInputPopupTitle, setIsInputPopupOpen);
+        fileSystemUtils.handleNewFile(
+            setInputPopupType,
+            setInputPopupTitle,
+            setIsInputPopupOpen
+        );
     };
 
     const handlePopupSubmit = (name) => {
@@ -235,7 +268,10 @@ export default function FileExplorer({ onClose }) {
     };
 
     const handleDeleteCancel = () => {
-        fileSystemUtils.handleDeleteCancel(setIsDeletePopupOpen, setDeleteItems);
+        fileSystemUtils.handleDeleteCancel(
+            setIsDeletePopupOpen,
+            setDeleteItems
+        );
     };
 
     const handleRename = () => {
@@ -303,16 +339,33 @@ export default function FileExplorer({ onClose }) {
 
     // Helper function to check if an item is starred
     const isItemStarred = (item) => {
-        return starringUtils.isItemStarred(item, currentDirectory, fileSystemStorage);
+        return starringUtils.isItemStarred(
+            item,
+            currentDirectory,
+            fileSystemStorage
+        );
+    };
+
+    // Save mode handlers
+    const handleSaveConfirm = () => {
+        if (isSaveMode && onSaveConfirm && saveFileNameInput.trim()) {
+            onSaveConfirm(saveFileNameInput.trim(), currentDirectory);
+        }
+    };
+
+    const handleSaveCancel = () => {
+        if (isSaveMode && onSaveConfirm) {
+            onSaveConfirm(null, null);
+        }
     };
 
     return (
         <Window
-            title="File Explorer"
+            title={isSaveMode ? "Save File" : "File Explorer"}
             onClose={onClose}
             defaultSize={{ width: 1000, height: 700 }}
         >
-            <div className="file-explorer">
+            <div className={`file-explorer ${isSaveMode ? "save-mode" : ""}`}>
                 {/* Top Bar */}
                 <FileExplorerTopBar
                     currentView={currentView}
@@ -327,6 +380,11 @@ export default function FileExplorer({ onClose }) {
                     onCopy={handleCopy}
                     onPaste={handlePaste}
                     canPaste={clipboardUtils.canPaste(clipboard)}
+                    isSaveMode={isSaveMode}
+                    saveFileName={saveFileNameInput}
+                    onSaveFileNameChange={setSaveFileNameInput}
+                    onSaveConfirm={handleSaveConfirm}
+                    onSaveCancel={handleSaveCancel}
                 />
 
                 {/* Main Content */}

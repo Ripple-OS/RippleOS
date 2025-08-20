@@ -7,6 +7,8 @@ import {
     faChevronRight,
     faTh,
     faList,
+    faSave,
+    faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import FileExplorerDropdown from "./FileExplorerDropdown";
 
@@ -23,6 +25,11 @@ export default function FileExplorerTopBar({
     onCopy,
     onPaste,
     canPaste,
+    isSaveMode = false,
+    saveFileName = "",
+    onSaveFileNameChange = null,
+    onSaveConfirm = null,
+    onSaveCancel = null,
 }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
@@ -52,24 +59,28 @@ export default function FileExplorerTopBar({
         <div className="top-bar">
             <div className="left-section">
                 <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                <span className="title">Files</span>
-                <div className="dropdown-container" ref={dropdownButtonRef}>
-                    <FontAwesomeIcon
-                        icon={faEllipsisH}
-                        className="more-icon"
-                        onClick={handleDropdownToggle}
-                    />
-                    <FileExplorerDropdown
-                        isOpen={isDropdownOpen}
-                        onClose={() => setIsDropdownOpen(false)}
-                        onNewFolder={handleNewFolder}
-                        onNewFile={handleNewFile}
-                        onCopy={onCopy}
-                        onPaste={onPaste}
-                        canPaste={canPaste}
-                        position={dropdownPosition}
-                    />
-                </div>
+                <span className="title">
+                    {isSaveMode ? "Save File" : "Files"}
+                </span>
+                {!isSaveMode && (
+                    <div className="dropdown-container" ref={dropdownButtonRef}>
+                        <FontAwesomeIcon
+                            icon={faEllipsisH}
+                            className="more-icon"
+                            onClick={handleDropdownToggle}
+                        />
+                        <FileExplorerDropdown
+                            isOpen={isDropdownOpen}
+                            onClose={() => setIsDropdownOpen(false)}
+                            onNewFolder={handleNewFolder}
+                            onNewFile={handleNewFile}
+                            onCopy={onCopy}
+                            onPaste={onPaste}
+                            canPaste={canPaste}
+                            position={dropdownPosition}
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="center-section">
@@ -93,25 +104,59 @@ export default function FileExplorerTopBar({
             </div>
 
             <div className="right-section">
-                <button
-                    className={`view-button ${
-                        currentView === "grid" ? "active" : ""
-                    }`}
-                    onClick={() => setCurrentView("grid")}
-                >
-                    <FontAwesomeIcon icon={faTh} />
-                </button>
-                <button
-                    className={`view-button ${
-                        currentView === "list" ? "active" : ""
-                    }`}
-                    onClick={() => setCurrentView("list")}
-                >
-                    <FontAwesomeIcon icon={faList} />
-                </button>
-                <div className="dropdown-container">
-                    <FontAwesomeIcon icon={faEllipsisH} className="more-icon" />
-                </div>
+                {!isSaveMode ? (
+                    <>
+                        <button
+                            className={`view-button ${
+                                currentView === "grid" ? "active" : ""
+                            }`}
+                            onClick={() => setCurrentView("grid")}
+                        >
+                            <FontAwesomeIcon icon={faTh} />
+                        </button>
+                        <button
+                            className={`view-button ${
+                                currentView === "list" ? "active" : ""
+                            }`}
+                            onClick={() => setCurrentView("list")}
+                        >
+                            <FontAwesomeIcon icon={faList} />
+                        </button>
+                        <div className="dropdown-container">
+                            <FontAwesomeIcon
+                                icon={faEllipsisH}
+                                className="more-icon"
+                            />
+                        </div>
+                    </>
+                ) : (
+                    <div className="save-controls">
+                        <input
+                            type="text"
+                            className="save-filename-input"
+                            value={saveFileName}
+                            onChange={(e) =>
+                                onSaveFileNameChange?.(e.target.value)
+                            }
+                            placeholder="Enter filename..."
+                        />
+                        <button
+                            className="save-button"
+                            onClick={onSaveConfirm}
+                            disabled={!saveFileName?.trim()}
+                        >
+                            <FontAwesomeIcon icon={faSave} />
+                            <span>Save</span>
+                        </button>
+                        <button
+                            className="cancel-button"
+                            onClick={onSaveCancel}
+                        >
+                            <FontAwesomeIcon icon={faTimes} />
+                            <span>Cancel</span>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

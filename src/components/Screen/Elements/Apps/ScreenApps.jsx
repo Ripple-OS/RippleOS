@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import FileExplorer from "./FileExplorer/FileExplorer";
+import TextEditor from "./TextEditor/TextEditor";
 
 export default function ScreenApps() {
     const [openedApps, setOpenedApps] = useState({});
+    const [textEditorSession, setTextEditorSession] = useState(null);
 
     // Load opened apps from localStorage on component mount
     useEffect(() => {
@@ -25,11 +27,26 @@ export default function ScreenApps() {
         };
 
         window.addEventListener("app-state-changed", handleAppStateChange);
+        const handleOpenTextEditor = (e) => {
+            const { path, name } = e.detail || {};
+            setTextEditorSession({ path, name });
+            // Ensure TextEditor app is opened
+            setOpenedApps((prev) => {
+                const next = { ...prev, TextEditor: true };
+                localStorage.setItem("openedApps", JSON.stringify(next));
+                return next;
+            });
+        };
+        window.addEventListener("open-text-editor", handleOpenTextEditor);
 
         return () => {
             window.removeEventListener(
                 "app-state-changed",
                 handleAppStateChange
+            );
+            window.removeEventListener(
+                "open-text-editor",
+                handleOpenTextEditor
             );
         };
     }, []);
@@ -52,6 +69,14 @@ export default function ScreenApps() {
         switch (appName) {
             case "Files Manager":
                 return <FileExplorer onClose={() => handleCloseApp(appName)} />;
+            case "TextEditor":
+                return (
+                    <TextEditor
+                        onClose={() => handleCloseApp(appName)}
+                        initialPath={textEditorSession?.path || null}
+                        fileName={textEditorSession?.name || null}
+                    />
+                );
             case "Settings":
                 return <div>Settings App (Coming Soon)</div>;
             case "Chrome Browser":

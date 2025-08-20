@@ -1,9 +1,17 @@
-import { pathUtils } from './pathUtils.js';
+import { pathUtils } from "./pathUtils.js";
 
 // Selection utilities
 export const selectionUtils = {
     // Handle item selection logic
-    handleItemSelection: (item, index, event, selectedItems, lastSelectedIndex, setSelectedItems, setLastSelectedIndex) => {
+    handleItemSelection: (
+        item,
+        index,
+        event,
+        selectedItems,
+        lastSelectedIndex,
+        setSelectedItems,
+        setLastSelectedIndex
+    ) => {
         const newSelectedItems = new Set(selectedItems);
 
         if (event.shiftKey && lastSelectedIndex !== -1) {
@@ -24,7 +32,18 @@ export const selectionUtils = {
     },
 
     // Handle item click (including double-click for navigation)
-    handleItemClick: (item, index, event, currentDirectory, selectedItems, lastSelectedIndex, setSelectedItems, setLastSelectedIndex, navigateToDirectory, selectionTimeoutRef) => {
+    handleItemClick: (
+        item,
+        index,
+        event,
+        currentDirectory,
+        selectedItems,
+        lastSelectedIndex,
+        setSelectedItems,
+        setLastSelectedIndex,
+        navigateToDirectory,
+        selectionTimeoutRef
+    ) => {
         // Clear any pending selection timeout
         if (selectionTimeoutRef && selectionTimeoutRef.current) {
             clearTimeout(selectionTimeoutRef.current);
@@ -32,30 +51,61 @@ export const selectionUtils = {
 
         // Handle double click
         if (event.detail === 2) {
-            if (currentDirectory === 'Starred') {
+            if (currentDirectory === "Starred") {
                 // Special handling for starred items - navigate to original location
                 if (item.originalPath) {
-                    if (item.type === 'folder') {
+                    if (item.type === "folder") {
                         // Navigate to the original folder location
-                        const targetPath = pathUtils.navigateToDirectory(item.originalPath, item.name);
+                        const targetPath = pathUtils.navigateToDirectory(
+                            item.originalPath,
+                            item.name
+                        );
                         navigateToDirectory(targetPath);
+                    } else if (item.type === "text") {
+                        // Open text file in TextEditor from original path
+                        window.dispatchEvent(
+                            new CustomEvent("open-text-editor", {
+                                detail: {
+                                    path: item.originalPath,
+                                    name: item.name,
+                                },
+                            })
+                        );
                     } else {
-                        // For files, navigate to the parent directory
+                        // For other files, navigate to the parent directory
                         navigateToDirectory(item.originalPath);
                     }
                 }
             } else if (item.type === "folder") {
-                const newPath = pathUtils.navigateToDirectory(currentDirectory, item.name);
+                const newPath = pathUtils.navigateToDirectory(
+                    currentDirectory,
+                    item.name
+                );
                 navigateToDirectory(newPath);
+            } else if (item.type === "text") {
+                // Open text file in TextEditor
+                window.dispatchEvent(
+                    new CustomEvent("open-text-editor", {
+                        detail: { path: currentDirectory, name: item.name },
+                    })
+                );
             } else {
-                // Handle file double click (could open file, show preview, etc.)
-                console.log("File double-clicked:", item.name);
+                // Non-text files: no-op for now
+                // console.log("File double-clicked:", item.name);
             }
             return;
         }
 
         // Handle single click for selection
-        selectionUtils.handleItemSelection(item, index, event, selectedItems, lastSelectedIndex, setSelectedItems, setLastSelectedIndex);
+        selectionUtils.handleItemSelection(
+            item,
+            index,
+            event,
+            selectedItems,
+            lastSelectedIndex,
+            setSelectedItems,
+            setLastSelectedIndex
+        );
     },
 
     // Handle content pane click (clear selection)
@@ -68,7 +118,15 @@ export const selectionUtils = {
     },
 
     // Handle context menu
-    handleContextMenu: (event, index, selectedItems, setSelectedItems, setLastSelectedIndex, setContextMenuPosition, setIsContextMenuOpen) => {
+    handleContextMenu: (
+        event,
+        index,
+        selectedItems,
+        setSelectedItems,
+        setLastSelectedIndex,
+        setContextMenuPosition,
+        setIsContextMenuOpen
+    ) => {
         event.preventDefault();
 
         if (index !== null) {
@@ -85,7 +143,7 @@ export const selectionUtils = {
 
     // Get selected items list
     getSelectedItemsList: (selectedItems, fileItems) => {
-        return Array.from(selectedItems).map(index => fileItems[index]);
+        return Array.from(selectedItems).map((index) => fileItems[index]);
     },
 
     // Clear selection

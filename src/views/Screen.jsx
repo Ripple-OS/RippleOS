@@ -10,9 +10,9 @@ export default function Screen() {
             toggled: false,
         },
         {
-            name: 'Sound Control',
+            name: "Sound Control",
             toggled: false,
-        }
+        },
     ]);
 
     return (
