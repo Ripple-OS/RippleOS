@@ -22,6 +22,8 @@ import {
 
 export default function FileExplorer({
     onClose,
+    onMinimize,
+    isMinimized = false,
     isSaveMode = false,
     onSaveConfirm = null,
     saveFileName = "",
@@ -363,6 +365,8 @@ export default function FileExplorer({
         <Window
             title={isSaveMode ? "Save File" : "File Explorer"}
             onClose={onClose}
+            onMinimize={onMinimize}
+            isMinimized={isMinimized}
             defaultSize={{ width: 1000, height: 700 }}
         >
             <div className={`file-explorer ${isSaveMode ? "save-mode" : ""}`}>

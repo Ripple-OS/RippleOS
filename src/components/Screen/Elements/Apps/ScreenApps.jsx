@@ -4,6 +4,7 @@ import TextEditor from "./TextEditor/TextEditor";
 
 export default function ScreenApps() {
     const [openedApps, setOpenedApps] = useState({});
+    const [minimizedApps, setMinimizedApps] = useState({});
     const [textEditorSession, setTextEditorSession] = useState(null);
 
     // Load opened apps from localStorage on component mount
@@ -13,6 +14,11 @@ export default function ScreenApps() {
                 localStorage.getItem("openedApps") || "{}"
             );
             setOpenedApps(stored);
+            
+            const storedMinimized = JSON.parse(
+                localStorage.getItem("minimizedApps") || "{}"
+            );
+            setMinimizedApps(storedMinimized);
         };
 
         loadOpenedApps();
@@ -25,8 +31,23 @@ export default function ScreenApps() {
                 [appName]: isOpened,
             }));
         };
+        
+        // Listen for app minimize/restore changes
+        const handleAppMinimizeChange = (event) => {
+            const { appName, isMinimized } = event.detail;
+            setMinimizedApps((prev) => {
+                const updated = {
+                    ...prev,
+                    [appName]: isMinimized,
+                };
+                localStorage.setItem("minimizedApps", JSON.stringify(updated));
+                return updated;
+            });
+        };
 
         window.addEventListener("app-state-changed", handleAppStateChange);
+        window.addEventListener("app-minimize-changed", handleAppMinimizeChange);
+        
         const handleOpenTextEditor = (e) => {
             const { path, name } = e.detail || {};
             setTextEditorSession({ path, name });
@@ -45,6 +66,10 @@ export default function ScreenApps() {
                 handleAppStateChange
             );
             window.removeEventListener(
+                "app-minimize-changed",
+                handleAppMinimizeChange
+            );
+            window.removeEventListener(
                 "open-text-editor",
                 handleOpenTextEditor
             );
@@ -56,6 +81,12 @@ export default function ScreenApps() {
         updatedApps[appName] = false;
         setOpenedApps(updatedApps);
         localStorage.setItem("openedApps", JSON.stringify(updatedApps));
+        
+        // Also clear minimized state when closing
+        const updatedMinimized = { ...minimizedApps };
+        delete updatedMinimized[appName];
+        setMinimizedApps(updatedMinimized);
+        localStorage.setItem("minimizedApps", JSON.stringify(updatedMinimized));
 
         // Dispatch event to notify other components
         window.dispatchEvent(
@@ -64,15 +95,44 @@ export default function ScreenApps() {
             })
         );
     };
+    
+    const handleMinimizeApp = (appName) => {
+        const isMinimized = !minimizedApps[appName];
+        setMinimizedApps((prev) => {
+            const updated = {
+                ...prev,
+                [appName]: isMinimized,
+            };
+            localStorage.setItem("minimizedApps", JSON.stringify(updated));
+            return updated;
+        });
+        
+        // Dispatch event to notify dock and other components
+        window.dispatchEvent(
+            new CustomEvent("app-minimize-changed", {
+                detail: { appName, isMinimized },
+            })
+        );
+    };
 
     const renderApp = (appName) => {
+        const isMinimized = minimizedApps[appName] || false;
+        
         switch (appName) {
             case "Files Manager":
-                return <FileExplorer onClose={() => handleCloseApp(appName)} />;
+                return (
+                    <FileExplorer 
+                        onClose={() => handleCloseApp(appName)}
+                        onMinimize={() => handleMinimizeApp(appName)}
+                        isMinimized={isMinimized}
+                    />
+                );
             case "TextEditor":
                 return (
                     <TextEditor
                         onClose={() => handleCloseApp(appName)}
+                        onMinimize={() => handleMinimizeApp(appName)}
+                        isMinimized={isMinimized}
                         initialPath={textEditorSession?.path || null}
                         fileName={textEditorSession?.name || null}
                     />

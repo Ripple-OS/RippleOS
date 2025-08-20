@@ -1,4 +1,4 @@
-import { faExpand, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faExpand, faXmark, faMinus, faWindowRestore } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState, useRef, useEffect } from "react";
 
@@ -6,6 +6,8 @@ export default function Window({
     title,
     children,
     onClose,
+    onMinimize,
+    isMinimized = false,
     defaultPosition = null,
     defaultSize = { width: 600, height: 400 },
     minSize = { width: 300, height: 200 },
@@ -193,6 +195,11 @@ export default function Window({
         isMaximized,
     ]);
 
+    // Don't render window if minimized
+    if (isMinimized) {
+        return null;
+    }
+
     return (
         <div
             ref={windowRef}
@@ -217,11 +224,19 @@ export default function Window({
 
                 <div className="window-controls">
                     <button
+                        onClick={onMinimize}
+                        className="control-button minimize"
+                        title="Minimize"
+                    >
+                        <FontAwesomeIcon icon={faMinus} />
+                    </button>
+                    
+                    <button
                         onClick={handleMaximize}
                         className="control-button maximize"
                         title={isMaximized ? "Restore" : "Maximize"}
                     >
-                        <FontAwesomeIcon icon={faExpand} />
+                        <FontAwesomeIcon icon={isMaximized ? faWindowRestore : faExpand} />
                     </button>
 
                     <button

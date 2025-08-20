@@ -12,6 +12,8 @@ import FileExplorer from "../FileExplorer/FileExplorer";
 
 export default function TextEditor({
     onClose,
+    onMinimize,
+    isMinimized = false,
     initialPath = null,
     fileName = null,
 }) {
@@ -121,6 +123,8 @@ export default function TextEditor({
         <Window
             title={`Text Editor — ${windowTitle}`}
             onClose={onClose}
+            onMinimize={onMinimize}
+            isMinimized={isMinimized}
             defaultSize={{ width: 900, height: 600 }}
             minSize={{ width: 500, height: 300 }}
         >

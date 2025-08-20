@@ -269,11 +269,15 @@ export class FileSystemStorage {
         map[this.makeFileKey(parentPath, fileName)] = content ?? "";
         this.saveFileContentsMap(map);
 
-        // Update metadata: size and modified
+    // Update metadata: size and modified
         const bytes = (content || "").length;
         const kb = Math.max(1, Math.ceil(bytes / 1024));
         item.size = `${kb} KB`;
         item.modified = new Date().toISOString().slice(0, 19).replace("T", " ");
+        
+        // Update parent folder modification date
+        this.updateParentFolderModificationDate(parentPath, fileSystem);
+        
         this.saveFileSystem(fileSystem);
         return true;
     }
@@ -332,6 +336,35 @@ export class FileSystemStorage {
             }
         }
         if (changed) this.saveFileContentsMap(updated);
+    }
+
+    // Helper method to update parent folder modification date
+    updateParentFolderModificationDate(folderPath, fileSystem = null) {
+        const fs = fileSystem || this.getFileSystem();
+        const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+        
+        // Update the folder itself in the filesystem
+        if (fs[folderPath]) {
+            // Don't update special folders like Starred or Recent
+            if (folderPath !== "Starred" && folderPath !== "Recent") {
+                // Find the parent folder path
+                const pathParts = folderPath.split("/");
+                if (pathParts.length > 1) {
+                    const parentPath = pathParts.slice(0, -1).join("/") || "Home";
+                    const folderName = pathParts[pathParts.length - 1];
+                    
+                    // Update the folder entry in its parent's items list
+                    if (fs[parentPath] && fs[parentPath].items) {
+                        const folderItem = fs[parentPath].items.find(item => item.name === folderName);
+                        if (folderItem) {
+                            folderItem.modified = now;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!fileSystem) this.saveFileSystem(fs);
     }
 
     // Get directory contents
@@ -464,6 +497,9 @@ export class FileSystemStorage {
                 size: "—",
                 modified: now,
             });
+            
+            // Update parent folder modification date
+            this.updateParentFolderModificationDate(parentPath, fileSystem);
         }
 
         this.saveFileSystem(fileSystem);
@@ -557,6 +593,9 @@ export class FileSystemStorage {
                 size: "0 KB",
                 modified: now,
             });
+            
+            // Update parent folder modification date
+            this.updateParentFolderModificationDate(parentPath, fileSystem);
         }
 
         this.saveFileSystem(fileSystem);
@@ -605,6 +644,9 @@ export class FileSystemStorage {
         fileSystem[parentPath].items = fileSystem[parentPath].items.filter(
             (it) => it.name !== itemName
         );
+        
+        // Update parent folder modification date
+        this.updateParentFolderModificationDate(parentPath, fileSystem);
 
         this.saveFileSystem(fileSystem);
     }
@@ -676,6 +718,9 @@ export class FileSystemStorage {
         const destDir = this.ensureDirectoryExists(toPath, fileSystem);
         if (destDir && !destDir.items.some((i) => i.name === copiedItem.name)) {
             destDir.items.push(copiedItem);
+            
+            // Update destination parent folder modification date
+            this.updateParentFolderModificationDate(toPath, fileSystem);
         }
 
         // Copy file contents if it's a file
@@ -752,6 +797,9 @@ export class FileSystemStorage {
         sourceDir.items = sourceDir.items.filter(
             (item) => item.name !== itemName
         );
+        
+        // Update source parent folder modification date
+        this.updateParentFolderModificationDate(fromPath, fileSystem);
 
         // Add to destination directory (ensure unique name when moving within same parent)
         const destDir = this.ensureDirectoryExists(toPath, fileSystem);
@@ -789,6 +837,11 @@ export class FileSystemStorage {
                 item.name = finalName;
             }
             destDir.items.push(item);
+            
+            // Update destination parent folder modification date
+            if (fromPath !== toPath) { // Only update if actually moving to different directory
+                this.updateParentFolderModificationDate(toPath, fileSystem);
+            }
 
             // Move file contents key if it's a file
             if (item.type !== "folder") {
@@ -822,6 +875,10 @@ export class FileSystemStorage {
                     .toISOString()
                     .slice(0, 19)
                     .replace("T", " ");
+                
+                // Update parent folder modification date
+                this.updateParentFolderModificationDate(parentPath, fileSystem);
+                
                 this.saveFileSystem(fileSystem);
 
                 // Move content key if it's a file (not folder)
