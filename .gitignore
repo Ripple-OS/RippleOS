@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # API directories and files
-api
+# api
