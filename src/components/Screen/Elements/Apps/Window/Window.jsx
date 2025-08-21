@@ -1,4 +1,9 @@
-import { faExpand, faXmark, faMinus, faWindowRestore } from "@fortawesome/free-solid-svg-icons";
+import {
+    faExpand,
+    faXmark,
+    faMinus,
+    faWindowRestore,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState, useRef, useEffect } from "react";
 
@@ -36,37 +41,53 @@ export default function Window({
         width: 0,
         height: 0,
     });
+    const [isClosing, setIsClosing] = useState(false);
+    const [isOpening, setIsOpening] = useState(true);
     const windowRef = useRef(null);
+
+    // Handle opening animation
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsOpening(false);
+        }, 300); // Small delay to ensure CSS is applied
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleMaximize = () => {
         const newMaximizedState = !isMaximized;
         setIsMaximized(newMaximizedState);
-        
+
         // Dispatch event to notify other components about maximize state change
         window.dispatchEvent(
             new CustomEvent("window-maximize-changed", {
-                detail: { 
+                detail: {
                     windowTitle: title,
-                    isMaximized: newMaximizedState 
+                    isMaximized: newMaximizedState,
                 },
             })
         );
     };
 
     const handleClose = () => {
-        // If window was maximized, dispatch event to show bottom navigation bar
-        if (isMaximized) {
-            window.dispatchEvent(
-                new CustomEvent("window-maximize-changed", {
-                    detail: { 
-                        windowTitle: title,
-                        isMaximized: false 
-                    },
-                })
-            );
-        }
-        // Call the original onClose handler
-        onClose();
+        setIsClosing(true);
+
+        // Wait for closing animation to complete before actually closing
+        setTimeout(() => {
+            // If window was maximized, dispatch event to show bottom navigation bar
+            if (isMaximized) {
+                window.dispatchEvent(
+                    new CustomEvent("window-maximize-changed", {
+                        detail: {
+                            windowTitle: title,
+                            isMaximized: false,
+                        },
+                    })
+                );
+            }
+            // Call the original onClose handler
+            onClose();
+        }, 300); // Match the CSS animation duration
     };
 
     const handleMinimize = () => {
@@ -74,9 +95,9 @@ export default function Window({
         if (isMaximized) {
             window.dispatchEvent(
                 new CustomEvent("window-maximize-changed", {
-                    detail: { 
+                    detail: {
                         windowTitle: title,
-                        isMaximized: false 
+                        isMaximized: false,
                     },
                 })
             );
@@ -249,7 +270,7 @@ export default function Window({
             ref={windowRef}
             className={`window ${isMaximized ? "maximized" : ""} ${
                 isDragging ? "dragging" : ""
-            }`}
+            } ${isOpening ? "opening" : ""} ${isClosing ? "closing" : ""}`}
             style={{
                 width: isMaximized ? "100vw" : size.width,
                 height: isMaximized ? "100vh" : size.height,
@@ -274,13 +295,15 @@ export default function Window({
                     >
                         <FontAwesomeIcon icon={faMinus} />
                     </button>
-                    
+
                     <button
                         onClick={handleMaximize}
                         className="control-button maximize"
                         title={isMaximized ? "Restore" : "Maximize"}
                     >
-                        <FontAwesomeIcon icon={isMaximized ? faWindowRestore : faExpand} />
+                        <FontAwesomeIcon
+                            icon={isMaximized ? faWindowRestore : faExpand}
+                        />
                     </button>
 
                     <button

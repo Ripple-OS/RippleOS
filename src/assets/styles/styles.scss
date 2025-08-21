@@ -497,12 +497,39 @@ main {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: .05s;
+    // transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // Opening animation
+    &.opening {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+        animation: windowOpen 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    // Closing animation
+    &.closing {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        animation: windowClose 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    // Normal state
+    &:not(.opening):not(.closing):not(.maximized) {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+
+        // Subtle hover effect
+        &:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            transform: scale(1.005);
+        }
+    }
 
     &.maximized {
         width: 100vw;
         height: 100vh;
         border-radius: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     &:not(.maximized) {
@@ -523,6 +550,7 @@ main {
         cursor: grab;
         user-select: none;
         border-bottom: 1px solid rgba(58, 74, 90, 0.5);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
         &.maximized {
             cursor: default;
@@ -549,10 +577,16 @@ main {
                 font-size: 14px;
                 color: colors.$white;
                 background: transparent;
-                transition: transform 0.15s ease;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
                 &:hover {
                     transform: scale(1.1);
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                }
+
+                &:active {
+                    transform: scale(0.95);
                 }
             }
         }
@@ -563,6 +597,7 @@ main {
         overflow: auto;
         padding: 0;
         background-color: #2e3a47;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     // Resize handles
@@ -638,6 +673,31 @@ main {
         &:hover {
             background-color: rgba(80, 180, 247, 0.2);
         }
+    }
+}
+
+// Window animation keyframes
+@keyframes windowOpen {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes windowClose {
+    0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
     }
 }
 
