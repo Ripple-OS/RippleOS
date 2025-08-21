@@ -1,32 +1,34 @@
-/* Calculator App Styles */
+/* Calculator App Styles - FileExplorer Theme */
 .calculator-app {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #f8f9fa;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #2e3a47;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #e0e0e0;
     padding: 16px;
     gap: 12px;
 }
 
 /* Display Area */
 .calc-display {
-    background: #ffffff;
-    border: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 16px;
     min-height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 8px;
+    backdrop-filter: blur(10px);
 }
 
 .calc-display-main {
     font-size: 28px;
     font-weight: 300;
-    color: #212529;
+    color: #e0e0e0;
     text-align: right;
     word-break: break-all;
     line-height: 1.2;
@@ -35,26 +37,27 @@
 
 .calc-display-operation {
     font-size: 14px;
-    color: #6c757d;
+    color: #a0aec0;
     text-align: right;
     margin-bottom: 8px;
 }
 
 /* History Section */
 .calc-history {
-    background: #ffffff;
-    border: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 8px;
     max-height: 120px;
     overflow-y: auto;
+    backdrop-filter: blur(10px);
 }
 
 .calc-history-title {
     font-size: 12px;
     font-weight: 600;
-    color: #6c757d;
+    color: #a0aec0;
     margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -68,10 +71,10 @@
 
 .calc-history-item {
     font-size: 11px;
-    color: #495057;
+    color: #cbd5e0;
     text-align: right;
     padding: 2px 0;
-    border-bottom: 1px solid #f1f3f4;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .calc-history-item:last-child {
@@ -95,7 +98,7 @@
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,77 +106,81 @@
     user-select: none;
     -webkit-user-select: none;
     font-family: inherit;
+    backdrop-filter: blur(10px);
 }
 
 .calc-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 15px rgba(80, 180, 247, 0.15);
 }
 
 .calc-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(80, 180, 247, 0.2);
 }
 
 /* Number buttons */
 .calc-btn.number {
-    background: #ffffff;
-    color: #212529;
-    border: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.05);
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .calc-btn.number:hover {
-    background: #f8f9fa;
-    border-color: #dee2e6;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Operator buttons */
 .calc-btn.operator {
-    background: #007bff;
-    color: white;
-    border: 1px solid #0056b3;
+    background: rgba(80, 180, 247, 0.2);
+    color: #50b4f7;
+    border: 1px solid rgba(80, 180, 247, 0.3);
 }
 
 .calc-btn.operator:hover {
-    background: #0056b3;
-    border-color: #004085;
+    background: rgba(80, 180, 247, 0.3);
+    border-color: #50b4f7;
+    box-shadow: 0 4px 15px rgba(80, 180, 247, 0.25);
 }
 
 /* Equals button */
 .calc-btn.equals {
-    background: #28a745;
-    color: white;
-    border: 1px solid #1e7e34;
+    background: rgba(72, 187, 120, 0.2);
+    color: #48bb78;
+    border: 1px solid rgba(72, 187, 120, 0.3);
 }
 
 .calc-btn.equals:hover {
-    background: #1e7e34;
-    border-color: #155724;
+    background: rgba(72, 187, 120, 0.3);
+    border-color: #48bb78;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.25);
 }
 
 /* Secondary function buttons (AC, CE, %, ±) */
 .calc-btn.secondary {
-    background: #6c757d;
-    color: white;
-    border: 1px solid #545b62;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .calc-btn.secondary:hover {
-    background: #545b62;
-    border-color: #3d4043;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Backspace button - spans full width at bottom */
 .calc-btn.backspace {
     grid-column: 1 / -1;
-    background: #dc3545;
-    color: white;
-    border: 1px solid #b02a37;
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .calc-btn.backspace:hover {
-    background: #b02a37;
-    border-color: #8d1e26;
+    background: rgba(220, 53, 69, 0.3);
+    border-color: #dc3545;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.25);
 }
 
 /* Disabled state */
@@ -186,7 +193,7 @@
 
 /* Focus styles for accessibility */
 .calc-btn:focus {
-    outline: 2px solid #007bff;
+    outline: 2px solid #50b4f7;
     outline-offset: 2px;
 }
 
@@ -200,11 +207,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background: #f1f3f4;
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 6px;
     margin-top: 8px;
     font-size: 11px;
-    color: #6c757d;
+    color: #a0aec0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
 }
 
 .calc-status-left,
@@ -224,66 +233,67 @@
         padding: 12px;
         gap: 8px;
     }
-    
+
     .calc-display {
         padding: 12px;
         min-height: 60px;
     }
-    
+
     .calc-display-main {
         font-size: 24px;
     }
-    
+
     .calc-btn {
         padding: 10px;
         font-size: 14px;
         min-height: 36px;
     }
-    
+
     .calc-buttons {
         gap: 6px;
     }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* Dark mode support - already dark by default */
+@media (prefers-color-scheme: light) {
     .calculator-app {
-        background: #2d3748;
+        background: #f8f9fa;
     }
-    
+
     .calc-display,
     .calc-history {
-        background: #1a202c;
-        border-color: #4a5568;
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .calc-display-main {
-        color: #f7fafc;
+        color: #212529;
     }
-    
+
     .calc-display-operation,
     .calc-history-title {
-        color: #a0aec0;
+        color: #6c757d;
     }
-    
+
     .calc-history-item {
-        color: #e2e8f0;
-        border-color: #4a5568;
+        color: #495057;
+        border-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .calc-btn.number {
-        background: #4a5568;
-        color: #f7fafc;
-        border-color: #718096;
+        background: rgba(255, 255, 255, 0.8);
+        color: #212529;
+        border-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .calc-btn.number:hover {
-        background: #718096;
-        border-color: #a0aec0;
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(0, 0, 0, 0.15);
     }
-    
+
     .calc-statusbar {
-        background: #4a5568;
-        color: #a0aec0;
+        background: rgba(0, 0, 0, 0.05);
+        color: #6c757d;
+        border-color: rgba(0, 0, 0, 0.1);
     }
 }
