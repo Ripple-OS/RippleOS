@@ -53,6 +53,39 @@ export default function Window({
         );
     };
 
+    const handleClose = () => {
+        // If window was maximized, dispatch event to show bottom navigation bar
+        if (isMaximized) {
+            window.dispatchEvent(
+                new CustomEvent("window-maximize-changed", {
+                    detail: { 
+                        windowTitle: title,
+                        isMaximized: false 
+                    },
+                })
+            );
+        }
+        // Call the original onClose handler
+        onClose();
+    };
+
+    const handleMinimize = () => {
+        // If window was maximized, dispatch event to show bottom navigation bar
+        if (isMaximized) {
+            window.dispatchEvent(
+                new CustomEvent("window-maximize-changed", {
+                    detail: { 
+                        windowTitle: title,
+                        isMaximized: false 
+                    },
+                })
+            );
+            setIsMaximized(false);
+        }
+        // Call the original onMinimize handler
+        onMinimize();
+    };
+
     // Mouse event handlers for dragging
     const handleMouseDown = (e) => {
         if (isMaximized) return;
@@ -235,7 +268,7 @@ export default function Window({
 
                 <div className="window-controls">
                     <button
-                        onClick={onMinimize}
+                        onClick={handleMinimize}
                         className="control-button minimize"
                         title="Minimize"
                     >
@@ -251,7 +284,7 @@ export default function Window({
                     </button>
 
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="control-button close"
                         title="Close"
                     >

@@ -363,7 +363,7 @@ export default function FileExplorer({
 
     return (
         <Window
-            title={isSaveMode ? "Save File" : "File Explorer"}
+            title={isSaveMode ? "Save File" : "Files Manager"}
             onClose={onClose}
             onMinimize={onMinimize}
             isMinimized={isMinimized}

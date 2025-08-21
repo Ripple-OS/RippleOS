@@ -121,7 +121,7 @@ export default function TextEditor({
 
     return (
         <Window
-            title={`Text Editor — ${windowTitle}`}
+            title="TextEditor"
             onClose={onClose}
             onMinimize={onMinimize}
             isMinimized={isMinimized}
