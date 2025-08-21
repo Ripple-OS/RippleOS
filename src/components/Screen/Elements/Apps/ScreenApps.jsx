@@ -3,6 +3,7 @@ import FileExplorer from "./FileExplorer/FileExplorer";
 import TextEditor from "./TextEditor/TextEditor";
 import Calculator from "./Calculator/Calculator";
 import Calendar from "./Calendar/Calendar";
+import Settings from "./Settings/Settings";
 
 export default function ScreenApps() {
     const [openedApps, setOpenedApps] = useState({});
@@ -143,7 +144,13 @@ export default function ScreenApps() {
                     />
                 );
             case "Settings":
-                return <div>Settings App (Coming Soon)</div>;
+                return (
+                    <Settings
+                        onClose={() => handleCloseApp(appName)}
+                        onMinimize={() => handleMinimizeApp(appName)}
+                        isMinimized={isMinimized}
+                    />
+                );
             case "Chrome Browser":
                 return <div>Chrome Browser (Coming Soon)</div>;
             case "Calendar":
