@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FileExplorer from "./FileExplorer/FileExplorer";
 import TextEditor from "./TextEditor/TextEditor";
 import Calculator from "./Calculator/Calculator";
+import Calendar from "./Calendar/Calendar";
 
 export default function ScreenApps() {
     const [openedApps, setOpenedApps] = useState({});
@@ -15,7 +16,7 @@ export default function ScreenApps() {
                 localStorage.getItem("openedApps") || "{}"
             );
             setOpenedApps(stored);
-            
+
             const storedMinimized = JSON.parse(
                 localStorage.getItem("minimizedApps") || "{}"
             );
@@ -32,7 +33,7 @@ export default function ScreenApps() {
                 [appName]: isOpened,
             }));
         };
-        
+
         // Listen for app minimize/restore changes
         const handleAppMinimizeChange = (event) => {
             const { appName, isMinimized } = event.detail;
@@ -47,8 +48,11 @@ export default function ScreenApps() {
         };
 
         window.addEventListener("app-state-changed", handleAppStateChange);
-        window.addEventListener("app-minimize-changed", handleAppMinimizeChange);
-        
+        window.addEventListener(
+            "app-minimize-changed",
+            handleAppMinimizeChange
+        );
+
         const handleOpenTextEditor = (e) => {
             const { path, name } = e.detail || {};
             setTextEditorSession({ path, name });
@@ -82,7 +86,7 @@ export default function ScreenApps() {
         updatedApps[appName] = false;
         setOpenedApps(updatedApps);
         localStorage.setItem("openedApps", JSON.stringify(updatedApps));
-        
+
         // Also clear minimized state when closing
         const updatedMinimized = { ...minimizedApps };
         delete updatedMinimized[appName];
@@ -96,7 +100,7 @@ export default function ScreenApps() {
             })
         );
     };
-    
+
     const handleMinimizeApp = (appName) => {
         const isMinimized = !minimizedApps[appName];
         setMinimizedApps((prev) => {
@@ -107,7 +111,7 @@ export default function ScreenApps() {
             localStorage.setItem("minimizedApps", JSON.stringify(updated));
             return updated;
         });
-        
+
         // Dispatch event to notify dock and other components
         window.dispatchEvent(
             new CustomEvent("app-minimize-changed", {
@@ -118,11 +122,11 @@ export default function ScreenApps() {
 
     const renderApp = (appName) => {
         const isMinimized = minimizedApps[appName] || false;
-        
+
         switch (appName) {
             case "Files Manager":
                 return (
-                    <FileExplorer 
+                    <FileExplorer
                         onClose={() => handleCloseApp(appName)}
                         onMinimize={() => handleMinimizeApp(appName)}
                         isMinimized={isMinimized}
@@ -143,7 +147,13 @@ export default function ScreenApps() {
             case "Chrome Browser":
                 return <div>Chrome Browser (Coming Soon)</div>;
             case "Calendar":
-                return <div>Calendar App (Coming Soon)</div>;
+                return (
+                    <Calendar
+                        onClose={() => handleCloseApp(appName)}
+                        onMinimize={() => handleMinimizeApp(appName)}
+                        isMinimized={isMinimized}
+                    />
+                );
             case "Calculator":
                 return (
                     <Calculator

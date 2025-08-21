@@ -55,7 +55,7 @@ main {
                 bottom: 0;
             }
         }
-        
+
         @keyframes slide-to-bottom {
             0% {
                 opacity: 1;
@@ -67,7 +67,7 @@ main {
                 bottom: -72px;
             }
         }
-        
+
         &.hidden {
             animation: .3s ease-in-out slide-to-bottom forwards;
         }
@@ -2206,5 +2206,87 @@ main {
         height: 1px;
         background-color: #3a4a5a;
         margin: 4px 0;
+    }
+}
+
+// BUTTON STYLES
+.btn {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    text-decoration: none;
+    background: #007bff;
+    color: white;
+    border-color: #0056b3;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        background: #0056b3;
+        border-color: #004085;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:disabled {
+        background: #6c757d;
+        border-color: #545b62;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    &.btn-primary {
+        background: #007bff;
+        color: white;
+        border-color: #0056b3;
+
+        &:hover {
+            background: #0056b3;
+            border-color: #004085;
+        }
+    }
+
+    &.btn-secondary {
+        background: #6c757d;
+        color: white;
+        border-color: #545b62;
+
+        &:hover {
+            background: #545b62;
+            border-color: #3d4043;
+        }
+    }
+
+    &.btn-danger {
+        background: #dc3545;
+        color: white;
+        border-color: #b02a37;
+
+        &:hover {
+            background: #b02a37;
+            border-color: #8d1e26;
+        }
+    }
+
+    &.btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    &.btn-icon {
+        padding: 8px;
+        min-width: 36px;
+        justify-content: center;
     }
 }
